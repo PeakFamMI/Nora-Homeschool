@@ -1,628 +1,381 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hail Mary Mission Log | Nora's Academic Console</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nora - Homeschool Tracker</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-    .glow-amber { box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.25); }
-    @media print {
-      .no-print { display: none !important; }
-      .print-only { display: block !important; }
-      body { background: white !important; color: black !important; font-family: sans-serif !important; }
-      .printable-card { background: white !important; color: black !important; border: 1px solid #ddd !important; box-shadow: none !important; }
-      .printable-text { color: black !important; }
-      .printable-border { border-color: #ddd !important; }
-    }
+    .font-phm { font-family: 'Space Grotesk', monospace, sans-serif; }
+    .font-parent { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
   </style>
 </head>
-<body class="bg-[#0b0f17] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
-  
-  <header class="bg-[#0f172a]/95 backdrop-blur-md border-b border-amber-500/20 sticky top-0 z-30 shadow-lg no-print">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 flex items-center justify-center font-extrabold text-lg shadow-inner glow-amber">
-          ⚡
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <h1 class="text-base sm:text-lg font-bold text-white tracking-wide font-mono-code leading-tight">HM-NORA // ORBITAL LOG</h1>
-            <span class="text-[10px] uppercase font-mono-code font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">TAU CETI MISSION</span>
-          </div>
-          <p class="text-xs text-slate-400 font-medium">Grade 9 Core Academic Telemetry</p>
-        </div>
-      </div>
-      
-      <div class="flex items-center space-x-3">
-        <div id="header-sync-indicator" class="hidden sm:flex items-center space-x-1.5 text-xs font-mono-code text-slate-400">
-          <span id="sync-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-          <span id="sync-text">Checking Sheet...</span>
-        </div>
-        <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-mono-code">
-          <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow-sm transition">Flight Deck</button>
-          <button onclick="switchTab('matrix')" id="tab-matrix" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Telemetry Grid</button>
-          <button onclick="switchTab('reports')" id="tab-reports" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Manifest</button>
-          <button onclick="switchTab('settings')" id="tab-settings" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Config</button>
-        </div>
-      </div>
-    </div>
-  </header>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div id="root"></div>
 
-  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-200 bg-slate-900 border border-amber-500/40 text-slate-100 text-xs sm:text-sm font-mono-code px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2.5 pointer-events-none">
-    <span class="text-amber-400 text-base">🤝</span>
-    <span id="toast-msg">Hours recorded! Fist my bump!</span>
-  </div>
+  <script type="text/babel">
+    const { useState, useEffect } = React;
 
-  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
-    
-    <!-- TAB 1: OVERVIEW -->
-    <div id="view-overview" class="space-y-6">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
-          <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Astrophage Reserve</p>
-            <span class="text-amber-400/50 text-xs">⚡</span>
-          </div>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-total-hrs" class="text-2xl sm:text-3xl font-extrabold text-white font-mono-code">0.0</span>
-            <span class="text-xs text-slate-500 font-mono-code">/ 300.0h</span>
-          </div>
-          <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div id="bar-total-progress" class="bg-gradient-to-r from-amber-500 to-amber-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
-          </div>
-        </div>
-
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
-          <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Mission Phase</p>
-            <span class="text-teal-400/50 text-xs font-mono-code">CYC-18</span>
-          </div>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-current-week-num" class="text-2xl sm:text-3xl font-extrabold text-teal-400 font-mono-code">W2</span>
-            <span class="text-xs text-slate-500 font-mono-code">of 18 Weeks</span>
-          </div>
-          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-mono-code">0.0h logged</p>
-        </div>
-
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
-          <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Trajectory</p>
-            <span class="text-emerald-400/50 text-xs font-mono-code">Δv</span>
-          </div>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-pacing-status" class="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono-code">Amaze! On Track</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-3 font-mono-code">Floor: 16.7 hrs/week</p>
-        </div>
-
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
-          <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Milestones</p>
-            <span class="text-slate-500 text-xs font-mono-code">U-2.50</span>
-          </div>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-credits-earned" class="text-2xl sm:text-3xl font-extrabold text-white font-mono-code">0.00</span>
-            <span class="text-xs text-slate-500 font-mono-code">/ 2.50 Credits</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-3 font-mono-code">60h per 0.50 Credit</p>
-        </div>
-      </div>
-
-      <div class="bg-[#111827] rounded-2xl border border-slate-800 p-5 shadow-sm">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-2">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-              <h2 class="text-base font-bold text-white font-mono-code">PROPULSION LOGGING CONSOLE</h2>
-            </div>
-            <p class="text-xs text-slate-400 mt-0.5">Logged hours automatically sync to your Google Sheet in the background.</p>
-          </div>
-          <div class="flex items-center space-x-2">
-            <label class="text-xs font-mono-code text-slate-400">CYCLE:</label>
-            <select id="select-active-week" onchange="changeActiveWeek(this.value)" class="text-xs font-mono-code font-bold bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-amber-400 focus:ring-2 focus:ring-amber-500 focus:outline-none">
-            </select>
-          </div>
-        </div>
-
-        <div id="quick-log-list" class="divide-y divide-slate-800/80 mt-2"></div>
-      </div>
-    </div>
-
-    <!-- TAB 2: TELEMETRY GRID -->
-    <div id="view-matrix" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111827] p-4 rounded-2xl border border-slate-800">
-        <div>
-          <h2 class="text-base font-bold text-white font-mono-code">FULL MISSION MATRIX</h2>
-          <p class="text-xs text-slate-400">Type into any cell to update study hours.</p>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="pullFromGoogleSheet()" class="px-3 py-1.5 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <span>Pull from Sheet</span>
-          </button>
-          <button onclick="dispatchToGoogleSheet()" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span>Push to Sheet</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-[#111827] rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs border-collapse text-left font-mono-code">
-            <thead>
-              <tr class="bg-slate-950/80 border-b border-slate-800 font-bold text-slate-400">
-                <th class="p-3 sticky left-0 bg-slate-950 z-10 w-44 shadow-sm border-r border-slate-800 text-slate-300">CORE SYSTEM</th>
-                <script>
-                  for(let i = 1; i <= 18; i++) {
-                    document.write(`<th class="p-2 text-center min-w-[50px] border-l border-slate-800/80">W${i}</th>`);
-                  }
-                </script>
-                <th class="p-3 text-right font-bold text-amber-400 border-l border-slate-800 min-w-[70px]">TOTAL</th>
-              </tr>
-            </thead>
-            <tbody id="matrix-table-body" class="divide-y divide-slate-800/80"></tbody>
-            <tfoot>
-              <tr id="matrix-total-row" class="bg-slate-950/90 font-extrabold text-white border-t-2 border-slate-700"></tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 3: MANIFEST -->
-    <div id="view-reports" class="hidden space-y-6">
-      <div class="flex items-center justify-between bg-[#111827] p-4 rounded-2xl border border-slate-800 no-print">
-        <div>
-          <h2 class="text-base font-bold text-white font-mono-code">PORTFOLIO AUDIT REPORT</h2>
-          <p class="text-xs text-slate-400">Print-ready transcript document for district compliance reviews.</p>
-        </div>
-        <button onclick="window.print()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono-code font-bold rounded-xl flex items-center space-x-2 transition shadow-md">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-          <span>Print Portfolio Report</span>
-        </button>
-      </div>
-
-      <div class="printable-card bg-[#111827] rounded-2xl border border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
-        <div class="border-b border-slate-800 pb-4 printable-border">
-          <div class="flex justify-between items-start">
-            <div>
-              <h3 class="text-xl font-extrabold text-white printable-text">Homeschool Academic Progress & Unit Report</h3>
-              <p class="text-xs text-slate-400 mt-0.5 printable-text">Student: <strong class="text-slate-200 printable-text">Nora Peak</strong> | Academic Year: <strong>Grade 9 (2026-2027)</strong></p>
-            </div>
-            <div class="text-right">
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono-code printable-text">SEMESTER 1</span>
-              <p class="text-[10px] text-slate-500 mt-1 printable-text">Standard: 60h / 0.50 Credit</p>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 printable-text font-mono-code">Curriculum Balance Distribution</h4>
-          <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden flex" id="balance-bar">
-            <div id="bar-stem" class="bg-amber-500 h-full transition-all" style="width: 50%"></div>
-            <div id="bar-humanities" class="bg-teal-500 h-full transition-all" style="width: 50%"></div>
-          </div>
-          <div class="flex justify-between items-center text-xs text-slate-400 mt-2 font-medium">
-            <div>STEM: <strong id="rep-stem-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></div>
-            <div>Humanities: <strong id="rep-humanities-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></div>
-          </div>
-        </div>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs text-left border-collapse font-mono-code">
-            <thead>
-              <tr class="bg-slate-950/60 border-y border-slate-800 text-slate-400 font-bold printable-text printable-border">
-                <th class="py-2.5 px-3">Subject Title</th>
-                <th class="py-2.5 px-3">Classification</th>
-                <th class="py-2.5 px-3 text-right">Target</th>
-                <th class="py-2.5 px-3 text-right">Logged</th>
-                <th class="py-2.5 px-3 text-right">Completion</th>
-                <th class="py-2.5 px-3 text-right">Carnegie Credit</th>
-              </tr>
-            </thead>
-            <tbody id="report-table-body" class="divide-y divide-slate-800/80 printable-border"></tbody>
-            <tfoot>
-              <tr id="report-table-footer" class="border-t-2 border-slate-700 font-bold text-white bg-slate-950/60 printable-text printable-border"></tr>
-            </tfoot>
-          </table>
-        </div>
-
-        <div class="pt-8 border-t border-slate-800 grid grid-cols-2 gap-8 text-xs text-slate-400 printable-text printable-border">
-          <div>
-            <div class="border-b border-slate-700 pb-1 h-8 printable-border"></div>
-            <p class="mt-1 font-medium printable-text">Parent / Supervising Educator Signature</p>
-          </div>
-          <div>
-            <div class="border-b border-slate-700 pb-1 h-8 printable-border"></div>
-            <p class="mt-1 font-medium printable-text">Date Logged & Verified</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 4: CONFIG -->
-    <div id="view-settings" class="hidden space-y-6">
-      <div class="bg-[#111827] p-6 rounded-2xl border border-slate-800 shadow-sm space-y-4">
-        <div>
-          <h2 class="text-base font-bold text-white font-mono-code">TWO-WAY GOOGLE SHEETS LINK</h2>
-          <p class="text-xs text-slate-400">Save your web app URL here. You can pull existing hours directly from your sheet or push new hours automatically.</p>
-        </div>
-
-        <div class="space-y-3 pt-2">
-          <div>
-            <label class="block text-xs font-mono-code text-slate-300 mb-1">APPS SCRIPT WEBHOOK URL</label>
-            <div class="flex space-x-2">
-              <input type="url" id="input-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 text-xs font-mono-code bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none">
-              <button onclick="saveWebhookUrl()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono-code font-bold text-xs rounded-xl transition">Save</button>
-            </div>
-          </div>
-
-          <div class="flex items-center space-x-3 pt-2">
-            <button onclick="pullFromGoogleSheet()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-mono-code font-bold text-xs rounded-xl flex items-center space-x-2 transition">
-              <span>Pull Current Hours from Sheet</span>
-            </button>
-            <button onclick="dispatchToGoogleSheet()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-mono-code font-bold text-xs rounded-xl flex items-center space-x-2 transition">
-              <span>Push App Hours to Sheet</span>
-            </button>
-          </div>
-          <p id="sync-manual-status" class="text-xs font-mono-code text-slate-400 pt-1"></p>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <script>
     const COURSES = [
-      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60, icon: '📐' },
-      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60, icon: '📖' },
-      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60, icon: '🔬' },
-      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60, icon: '🏛️' },
-      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60, icon: '⚖️' }
+      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60 },
+      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60 },
+      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60 },
+      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60 },
+      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60 }
     ];
 
-    const DEFAULT_DATA = {
-      activeWeek: 2,
-      webhookUrl: '',
-      matrix: {
-        geometry:  { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        english9:  { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        biology:   { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        ushistory: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        civics:    { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 }
-      }
-    };
-
-    let appState = loadState();
-    let autoSyncTimer = null;
-
-    function loadState() {
-      const saved = localStorage.getItem('noras_live_daybook_v3');
-      if (saved) {
-        try { return JSON.parse(saved); } catch(e) {}
-      }
-      return JSON.parse(JSON.stringify(DEFAULT_DATA));
-    }
-
-    function saveState(skipSync) {
-      localStorage.setItem('noras_live_daybook_v3', JSON.stringify(appState));
-      renderAll();
-      if (!skipSync && appState.webhookUrl) {
-        scheduleAutoSync();
-      }
-    }
-
-    function scheduleAutoSync() {
-      setSyncStatus('saving');
-      clearTimeout(autoSyncTimer);
-      autoSyncTimer = setTimeout(() => {
-        dispatchToGoogleSheet();
-      }, 1200);
-    }
-
-    function setSyncStatus(state) {
-      const dot = document.getElementById('sync-dot');
-      const text = document.getElementById('sync-text');
-      if (state === 'saving') {
-        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
-        text.innerText = "Syncing to Sheet...";
-        text.className = "text-amber-400";
-      } else if (state === 'synced') {
-        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        text.innerText = "Synced with Sheet";
-        text.className = "text-slate-400";
-      } else if (state === 'no-url') {
-        dot.className = "w-2 h-2 rounded-full bg-slate-500";
-        text.innerText = "Sheet not linked";
-        text.className = "text-slate-500";
-      }
-    }
-
-    // PULL DATA FROM GOOGLE SHEETS
-    async function pullFromGoogleSheet() {
-      const stat = document.getElementById('sync-manual-status');
-      if (!appState.webhookUrl) {
-        alert("Please save your Google Apps Script URL first.");
-        return;
-      }
-
-      stat.innerText = "Reading data from Google Sheet...";
-      setSyncStatus('saving');
-
-      try {
-        const res = await fetch(appState.webhookUrl, { redirect: "follow" });
-        const json = await res.json();
-        
-        if (json && json.status === 'ok' && json.matrix) {
-          appState.matrix = json.matrix;
-          saveState(true);
-          stat.innerText = "Successfully loaded latest hours from Google Sheet!";
-          setSyncStatus('synced');
-          showToast("Sheet data loaded! Amaze! 🤝");
-        } else {
-          stat.innerText = "Received response, but matrix format didn't match.";
+    function App() {
+      // Toggle between 'phm' and 'standard'
+      const [viewMode, setViewMode] = useState(() => localStorage.getItem('tracker_view_mode') || 'phm');
+      const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem('nora_webhook_url') || '');
+      const [currentWeek, setCurrentWeek] = useState(2);
+      const [activeTab, setActiveTab] = useState('deck');
+      const [matrix, setMatrix] = useState(() => {
+        const saved = localStorage.getItem('nora_hours_matrix');
+        if (saved) {
+          try { return JSON.parse(saved); } catch (e) {}
         }
-      } catch (err) {
-        stat.innerText = "Error reading Sheet. Check that Apps Script is deployed with 'Anyone' access.";
-        setSyncStatus('no-url');
-      }
-    }
-
-    // PUSH DATA TO GOOGLE SHEETS
-    async function dispatchToGoogleSheet() {
-      if (!appState.webhookUrl) {
-        setSyncStatus('no-url');
-        return;
-      }
-      try {
-        const payload = {
-          student: "Nora Peak",
-          matrix: appState.matrix
+        return {
+          geometry: { 2: 2.7 },
+          english9: { 2: 1.2 },
+          biology: { 2: 3.8 },
+          ushistory: { 2: 0.8 },
+          civics: { 2: 0.0 }
         };
-
-        await fetch(appState.webhookUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
-        });
-
-        setSyncStatus('synced');
-      } catch (err) {
-        const dot = document.getElementById('sync-dot');
-        const text = document.getElementById('sync-text');
-        dot.className = "w-2 h-2 rounded-full bg-rose-400";
-        text.innerText = "Sync Error";
-        text.className = "text-rose-400";
-      }
-    }
-
-    function saveWebhookUrl() {
-      const url = document.getElementById('input-webhook-url').value.trim();
-      appState.webhookUrl = url;
-      saveState(true);
-      showToast('Webhook saved! Pulling Sheet data...');
-      pullFromGoogleSheet();
-    }
-
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      const toastMsg = document.getElementById('toast-msg');
-      toastMsg.innerText = msg;
-      toast.classList.remove('translate-y-20', 'opacity-0');
-      setTimeout(() => {
-        toast.classList.add('translate-y-20', 'opacity-0');
-      }, 2000);
-    }
-
-    function switchTab(tabId) {
-      ['overview', 'matrix', 'reports', 'settings'].forEach(tab => {
-        document.getElementById(`view-${tab}`).classList.toggle('hidden', tab !== tabId);
-        const btn = document.getElementById(`tab-${tab}`);
-        if (tab === tabId) {
-          btn.classList.add('bg-amber-500', 'text-slate-950', 'font-bold');
-          btn.classList.remove('text-slate-400');
-        } else {
-          btn.classList.remove('bg-amber-500', 'text-slate-950', 'font-bold');
-          btn.classList.add('text-slate-400');
-        }
       });
-    }
+      const [isSyncing, setIsSyncing] = useState(false);
+      const [syncStatus, setSyncStatus] = useState('Synced with Sheet');
 
-    function populateWeekSelector() {
-      const sel = document.getElementById('select-active-week');
-      sel.innerHTML = '';
-      for (let w = 1; w <= 18; w++) {
-        const opt = document.createElement('option');
-        opt.value = w;
-        opt.innerText = `Cycle ${w} (Week ${w})`;
-        if (w === appState.activeWeek) opt.selected = true;
-        sel.appendChild(opt);
-      }
-    }
+      useEffect(() => {
+        localStorage.setItem('tracker_view_mode', viewMode);
+      }, [viewMode]);
 
-    function changeActiveWeek(val) {
-      appState.activeWeek = parseInt(val, 10);
-      saveState(true);
-    }
+      useEffect(() => {
+        localStorage.setItem('nora_hours_matrix', JSON.stringify(matrix));
+      }, [matrix]);
 
-    function adjustHours(courseId, delta) {
-      const current = appState.matrix[courseId][appState.activeWeek] || 0;
-      const next = Math.max(0, Math.round((current + delta) * 10) / 10);
-      appState.matrix[courseId][appState.activeWeek] = next;
-      saveState();
-      showToast(delta > 0 ? `+${delta}h logged! Fist my bump! 🤝` : `Updated to ${next}h`);
-    }
+      // Calculate Course Totals
+      const getCourseTotal = (courseId) => {
+        const record = matrix[courseId] || {};
+        return Object.values(record).reduce((a, b) => a + (parseFloat(b) || 0), 0);
+      };
 
-    function handleCellChange(courseId, week, val) {
-      const num = parseFloat(val);
-      appState.matrix[courseId][week] = isNaN(num) || num < 0 ? 0 : Math.round(num * 10) / 10;
-      saveState();
-      showToast(`Cycle ${week} logged`);
-    }
-
-    function getCourseTotal(courseId) {
-      let sum = 0;
-      for (let w = 1; w <= 18; w++) sum += (appState.matrix[courseId][w] || 0);
-      return Math.round(sum * 10) / 10;
-    }
-
-    function getWeekTotal(week) {
-      let sum = 0;
-      COURSES.forEach(c => sum += (appState.matrix[c.id][week] || 0));
-      return Math.round(sum * 10) / 10;
-    }
-
-    function getGrandTotal() {
-      let sum = 0;
-      COURSES.forEach(c => sum += getCourseTotal(c.id));
-      return Math.round(sum * 10) / 10;
-    }
-
-    function renderAll() {
-      const grandTotal = getGrandTotal();
-      const currentWeekHrs = getWeekTotal(appState.activeWeek);
-      
-      document.getElementById('stat-total-hrs').innerText = grandTotal.toFixed(1);
-      document.getElementById('bar-total-progress').style.width = Math.min(100, (grandTotal / 300) * 100) + '%';
-      document.getElementById('stat-current-week-num').innerText = `W${appState.activeWeek}`;
-      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)}h logged`;
-      
+      const grandTotal = COURSES.reduce((acc, c) => acc + getCourseTotal(c.id), 0);
+      const currentWeekTotal = COURSES.reduce((acc, c) => acc + (parseFloat(matrix[c.id]?.[currentWeek]) || 0), 0);
       const creditsEarned = (grandTotal / 60) * 0.5;
-      document.getElementById('stat-credits-earned').innerText = creditsEarned.toFixed(2);
 
-      const targetPace = (300 / 18) * appState.activeWeek;
-      const pacingEl = document.getElementById('stat-pacing-status');
-      if (grandTotal >= targetPace) {
-        pacingEl.innerText = "Amaze! On Track";
-        pacingEl.className = "text-lg sm:text-xl font-extrabold text-amber-400 font-mono-code";
-      } else if (grandTotal >= targetPace * 0.8) {
-        pacingEl.innerText = "Good. On Track";
-        pacingEl.className = "text-lg sm:text-xl font-extrabold text-teal-400 font-mono-code";
-      } else {
-        pacingEl.innerText = "More Burn Needed";
-        pacingEl.className = "text-lg sm:text-xl font-extrabold text-rose-400 font-mono-code";
-      }
-
-      const quickLogEl = document.getElementById('quick-log-list');
-      quickLogEl.innerHTML = '';
-      COURSES.forEach(c => {
-        const hrs = appState.matrix[c.id][appState.activeWeek] || 0;
-        const total = getCourseTotal(c.id);
-        const div = document.createElement('div');
-        div.className = "py-3 flex items-center justify-between";
-        div.innerHTML = `
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="text-base">${c.icon}</span>
-              <span class="text-sm font-bold text-slate-100 font-mono-code">${c.name}</span>
-              <span class="text-[10px] uppercase font-mono-code font-bold px-1.5 py-0.5 rounded ${c.cat === 'STEM' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' : 'bg-teal-500/10 border border-teal-500/30 text-teal-400'}">${c.cat}</span>
-            </div>
-            <p class="text-xs text-slate-400 font-mono-code mt-0.5">Burned: ${total.toFixed(1)} / ${c.target}.0h</p>
-          </div>
-          <div class="flex items-center space-x-1.5 font-mono-code">
-            <button onclick="adjustHours('${c.id}', -0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold flex items-center justify-center transition">-</button>
-            <span class="w-12 text-center text-sm font-bold text-amber-400">${hrs.toFixed(1)}h</span>
-            <button onclick="adjustHours('${c.id}', 0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-500/40 text-amber-300 font-bold flex items-center justify-center transition">+0.5</button>
-            <button onclick="adjustHours('${c.id}', 1.0)" class="w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center transition shadow-sm">+1h</button>
-          </div>
-        `;
-        quickLogEl.appendChild(div);
-      });
-
-      const matrixTbody = document.getElementById('matrix-table-body');
-      matrixTbody.innerHTML = '';
-      COURSES.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-800/40 transition";
-        let cells = `<td class="p-3 font-semibold text-slate-200 sticky left-0 bg-[#111827] shadow-sm border-r border-slate-800"><span class="mr-1.5">${c.icon}</span>${c.name}</td>`;
-        for (let w = 1; w <= 18; w++) {
-          const val = appState.matrix[c.id][w] || 0;
-          const isCurrent = (w === appState.activeWeek);
-          cells += `
-            <td class="p-1 border-l border-slate-800/80 text-center ${isCurrent ? 'bg-amber-500/10' : ''}">
-              <input type="number" step="0.5" min="0" value="${val === 0 ? '' : val}" placeholder="-" 
-                onchange="handleCellChange('${c.id}', ${w}, this.value)"
-                class="w-full text-center py-1 bg-transparent rounded hover:bg-slate-800 focus:bg-slate-800 focus:ring-1 focus:ring-amber-500 font-medium text-slate-200 outline-none">
-            </td>
-          `;
+      const pullFromSheet = async () => {
+        if (!webhookUrl) return;
+        setIsSyncing(true);
+        setSyncStatus('Reading sheet...');
+        try {
+          const res = await fetch(`${webhookUrl}?t=${Date.now()}`);
+          const json = await res.json();
+          if (json.status === 'ok' && json.matrix) {
+            setMatrix(json.matrix);
+            setSyncStatus('Synced with Sheet');
+          } else {
+            setSyncStatus('Sync warning');
+          }
+        } catch (err) {
+          setSyncStatus('Offline / Cached');
+        } finally {
+          setIsSyncing(false);
         }
-        cells += `<td class="p-3 font-bold text-right text-amber-400 border-l border-slate-800">${getCourseTotal(c.id).toFixed(1)}</td>`;
-        tr.innerHTML = cells;
-        matrixTbody.appendChild(tr);
-      });
+      };
 
-      const totalRow = document.getElementById('matrix-total-row');
-      let totalCells = `<td class="p-3 sticky left-0 bg-slate-950 border-r border-slate-800 text-amber-400">TOTAL BURN</td>`;
-      for (let w = 1; w <= 18; w++) {
-        const wTot = getWeekTotal(w);
-        totalCells += `<td class="p-2 text-center border-l border-slate-800/80 font-bold ${w === appState.activeWeek ? 'text-amber-400' : 'text-slate-300'}">${wTot > 0 ? wTot.toFixed(1) : '-'}</td>`;
-      }
-      totalCells += `<td class="p-3 text-right font-extrabold text-amber-400 border-l border-slate-800">${grandTotal.toFixed(1)}</td>`;
-      totalRow.innerHTML = totalCells;
+      const pushToSheet = async (newMatrix) => {
+        if (!webhookUrl) return;
+        setIsSyncing(true);
+        setSyncStatus('Updating sheet...');
+        try {
+          await fetch(webhookUrl, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matrix: newMatrix })
+          });
+          setSyncStatus('Synced with Sheet');
+        } catch (err) {
+          setSyncStatus('Saved locally (Offline)');
+        } finally {
+          setIsSyncing(false);
+        }
+      };
 
-      let stemHrs = 0;
-      let humanitiesHrs = 0;
-      COURSES.forEach(c => {
-        const tot = getCourseTotal(c.id);
-        if (c.cat === 'STEM') stemHrs += tot;
-        else humanitiesHrs += tot;
-      });
+      const adjustHours = (courseId, delta) => {
+        const currentVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
+        const nextVal = Math.max(0, Math.round((currentVal + delta) * 10) / 10);
+        const updated = {
+          ...matrix,
+          [courseId]: {
+            ...(matrix[courseId] || {}),
+            [currentWeek]: nextVal
+          }
+        };
+        setMatrix(updated);
+        pushToSheet(updated);
+      };
 
-      document.getElementById('rep-stem-hrs').innerText = `${stemHrs.toFixed(1)} hrs`;
-      document.getElementById('rep-humanities-hrs').innerText = `${humanitiesHrs.toFixed(1)} hrs`;
-      
-      const stemPct = grandTotal > 0 ? (stemHrs / grandTotal) * 100 : 50;
-      const humPct = grandTotal > 0 ? (humanitiesHrs / grandTotal) * 100 : 50;
-      document.getElementById('bar-stem').style.width = stemPct + '%';
-      document.getElementById('bar-humanities').style.width = humPct + '%';
+      const isPHM = viewMode === 'phm';
 
-      const repTbody = document.getElementById('report-table-body');
-      repTbody.innerHTML = '';
-      COURSES.forEach(c => {
-        const tot = getCourseTotal(c.id);
-        const pct = Math.min(100, Math.round((tot / c.target) * 100));
-        const credit = ((tot / c.target) * 0.5).toFixed(2);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="py-2.5 px-3 font-semibold text-slate-200 printable-text">${c.name}</td>
-          <td class="py-2.5 px-3 text-slate-400 printable-text">${c.cat}</td>
-          <td class="py-2.5 px-3 text-right text-slate-400 printable-text">${c.target}.0h</td>
-          <td class="py-2.5 px-3 text-right font-bold text-amber-400 printable-text">${tot.toFixed(1)}h</td>
-          <td class="py-2.5 px-3 text-right text-slate-300 font-medium printable-text">${pct}%</td>
-          <td class="py-2.5 px-3 text-right font-bold text-teal-400 printable-text">${credit} / 0.50</td>
-        `;
-        repTbody.appendChild(tr);
-      });
+      return (
+        <div className={`p-4 md:p-8 max-w-5xl mx-auto ${isPHM ? 'font-phm' : 'font-parent'}`}>
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="text-amber-500 text-2xl font-black">⚡</span>
+                <h1 className="text-xl font-bold tracking-tight">
+                  {isPHM ? 'HM-NORA // ORBITAL LOG' : "Nora's Homeschool Tracker"}
+                </h1>
+                {isPHM ? (
+                  <span className="bg-amber-950 border border-amber-600/60 text-amber-400 text-xs px-2 py-0.5 rounded font-mono">TAU CETI</span>
+                ) : (
+                  <span className="bg-slate-800 text-slate-300 text-xs px-2.5 py-0.5 rounded-full font-medium">Grade 9 • Core Courses</span>
+                )}
+              </div>
+              <p className="text-slate-400 text-xs mt-1">
+                {isPHM ? 'Grade 9 Core Academic Telemetry' : 'Official Academic Time Log (300 Hour Floor)'}
+              </p>
+            </div>
 
-      const repFooter = document.getElementById('report-table-footer');
-      repFooter.innerHTML = `
-        <td class="py-3 px-3 printable-text" colspan="2">TOTAL ACADEMIC UNITS</td>
-        <td class="py-3 px-3 text-right printable-text">300.0h</td>
-        <td class="py-3 px-3 text-right text-amber-400 printable-text">${grandTotal.toFixed(1)}h</td>
-        <td class="py-3 px-3 text-right printable-text">${Math.round((grandTotal / 300) * 100)}%</td>
-        <td class="py-3 px-3 text-right text-teal-400 printable-text">${creditsEarned.toFixed(2)} / 2.50</td>
-      `;
+            {/* View Switcher & Navigation */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Dual Mode Toggle */}
+              <button 
+                onClick={() => setViewMode(isPHM ? 'standard' : 'phm')}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium px-3 py-1.5 rounded-md flex items-center gap-1.5 transition"
+                title="Switch between Teen / Parent view"
+              >
+                <span>👓</span>
+                <span>{isPHM ? 'View: Standard English' : 'View: Hail Mary Mode'}</span>
+              </button>
 
-      if (appState.webhookUrl) {
-        document.getElementById('input-webhook-url').value = appState.webhookUrl;
-      }
+              <div className="flex bg-slate-900 border border-slate-800 rounded-lg p-1">
+                <button
+                  onClick={() => setActiveTab('deck')}
+                  className={`px-3 py-1 rounded text-xs font-medium transition ${activeTab === 'deck' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                >
+                  {isPHM ? 'Flight Deck' : 'Quick Log'}
+                </button>
+                <button
+                  onClick={() => setActiveTab('grid')}
+                  className={`px-3 py-1 rounded text-xs font-medium transition ${activeTab === 'grid' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                >
+                  {isPHM ? 'Telemetry Grid' : 'Semester Matrix'}
+                </button>
+                <button
+                  onClick={() => setActiveTab('config')}
+                  className={`px-3 py-1 rounded text-xs font-medium transition ${activeTab === 'config' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
+                >
+                  {isPHM ? 'Config' : 'Settings'}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Top Status Bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+            <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                {isPHM ? 'Astrophage Reserve' : 'Total Hours Logged'}
+              </div>
+              <div className="text-2xl font-black text-white">
+                {grandTotal.toFixed(1)} <span className="text-sm font-normal text-slate-500">/ 300.0h</span>
+              </div>
+              <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div className="bg-amber-500 h-full rounded-full" style={{ width: `${Math.min(100, (grandTotal / 300) * 100)}%` }}></div>
+              </div>
+            </div>
+
+            <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                {isPHM ? 'Mission Phase' : 'Current Week'}
+              </div>
+              <div className="text-2xl font-black text-emerald-400">
+                W{currentWeek} <span className="text-sm font-normal text-slate-500">of 18</span>
+              </div>
+              <div className="text-xs text-slate-400 mt-1">
+                {currentWeekTotal.toFixed(1)}h logged this week
+              </div>
+            </div>
+
+            <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                {isPHM ? 'Trajectory' : 'Pacing Status'}
+              </div>
+              <div className="text-lg font-bold text-rose-400">
+                {isPHM ? 'More Burn Needed' : 'Behind Target Pace'}
+              </div>
+              <div className="text-xs text-slate-400 mt-1">Floor: 16.7 hrs/week</div>
+            </div>
+
+            <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
+              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                {isPHM ? 'Milestones' : 'Credits Accrued'}
+              </div>
+              <div className="text-2xl font-black text-slate-100">
+                {creditsEarned.toFixed(2)} <span className="text-sm font-normal text-slate-500">/ 2.50</span>
+              </div>
+              <div className="text-xs text-slate-400 mt-1">60h per 0.50 Credit</div>
+            </div>
+          </div>
+
+          {/* Sync Status Banner */}
+          <div className="flex items-center justify-between text-xs px-3 py-1.5 bg-slate-900/40 border border-slate-800 rounded-lg mb-6">
+            <span className="flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-slate-300">{syncStatus}</span>
+            </span>
+            <button 
+              onClick={pullFromSheet} 
+              disabled={isSyncing}
+              className="text-amber-400 hover:text-amber-300 font-medium disabled:opacity-50"
+            >
+              {isSyncing ? 'Syncing...' : '↻ Refresh from Google Sheet'}
+            </button>
+          </div>
+
+          {/* TAB 1: QUICK LOG / FLIGHT DECK */}
+          {activeTab === 'deck' && (
+            <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200">
+                    {isPHM ? 'Propulsion Logging Console' : 'Weekly Course Hour Entry'}
+                  </h2>
+                  <p className="text-xs text-slate-400">
+                    {isPHM ? 'Logged hours automatically sync to your Google Sheet in the background.' : 'Adjust hours for this week. Updates push directly to your Google Sheet.'}
+                  </p>
+                </div>
+                <select
+                  value={currentWeek}
+                  onChange={(e) => setCurrentWeek(Number(e.target.value))}
+                  className="bg-slate-950 border border-slate-700 text-amber-400 text-xs font-bold rounded-lg px-3 py-1.5"
+                >
+                  {Array.from({ length: 18 }, (_, i) => i + 1).map(w => (
+                    <option key={w} value={w}>Week {w}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="divide-y divide-slate-800">
+                {COURSES.map(course => {
+                  const weekHours = parseFloat(matrix[course.id]?.[currentWeek]) || 0;
+                  const totalHours = getCourseTotal(course.id);
+                  return (
+                    <div key={course.id} className="py-3 flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white">{course.name}</span>
+                          <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+                            {course.cat}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-400 mt-0.5">
+                          {isPHM ? 'Burned' : 'Completed'}: {totalHours.toFixed(1)} / {course.target}.0h
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => adjustHours(course.id, -0.5)}
+                          className="w-8 h-8 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm flex items-center justify-center transition"
+                        >-</button>
+                        <span className="w-12 text-center text-sm font-mono font-bold text-amber-400">
+                          {weekHours.toFixed(1)}h
+                        </span>
+                        <button
+                          onClick={() => adjustHours(course.id, 0.5)}
+                          className="px-2.5 h-8 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 transition"
+                        >+0.5</button>
+                        <button
+                          onClick={() => adjustHours(course.id, 1.0)}
+                          className="px-2.5 h-8 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
+                        >+1h</button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SEMESTER MATRIX */}
+          {activeTab === 'grid' && (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 overflow-x-auto">
+              <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200 mb-3">
+                {isPHM ? 'Telemetry Grid (18 Weeks)' : 'Full 18-Week Academic Matrix'}
+              </h2>
+              <table className="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-slate-400">
+                    <th className="p-2">Course</th>
+                    <th className="p-2 text-right">Total</th>
+                    {Array.from({ length: 18 }, (_, i) => i + 1).map(w => (
+                      <th key={w} className={`p-1 text-center ${w === currentWeek ? 'text-amber-400 font-bold' : ''}`}>
+                        W{w}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800 font-mono">
+                  {COURSES.map(course => (
+                    <tr key={course.id} className="hover:bg-slate-800/40">
+                      <td className="p-2 font-sans font-medium text-slate-200">{course.name}</td>
+                      <td className="p-2 text-right font-bold text-amber-400">{getCourseTotal(course.id).toFixed(1)}h</td>
+                      {Array.from({ length: 18 }, (_, i) => i + 1).map(w => {
+                        const val = matrix[course.id]?.[w] || 0;
+                        return (
+                          <td key={w} className={`p-1 text-center ${w === currentWeek ? 'bg-amber-500/10' : ''}`}>
+                            {val > 0 ? val : '-'}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* TAB 3: CONFIG */}
+          {activeTab === 'config' && (
+            <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-4">
+              <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200">
+                {isPHM ? 'Communication Telemetry Link' : 'Google Sheets Webhook Settings'}
+              </h2>
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">Apps Script Web App URL</label>
+                <input
+                  type="text"
+                  value={webhookUrl}
+                  onChange={(e) => setWebhookUrl(e.target.value)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 p-2.5 rounded-lg focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <button
+                onClick={() => {
+                  localStorage.setItem('nora_webhook_url', webhookUrl);
+                  pullFromSheet();
+                }}
+                className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-md transition"
+              >
+                Save & Pull from Sheet
+              </button>
+            </div>
+          )}
+        </div>
+      );
     }
 
-    populateWeekSelector();
-    renderAll();
-
-    // Auto-fetch current Sheet data when opened if webhook URL is set
-    if (appState.webhookUrl) {
-      pullFromGoogleSheet();
-    }
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
 </body>
 </html>
