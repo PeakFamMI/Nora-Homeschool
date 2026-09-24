@@ -11,16 +11,7 @@
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .font-mono-code { font-family: 'JetBrains Mono', monospace; }
-    
-    /* Subtle Astrophage ambient glow */
-    .glow-amber {
-      box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.25);
-    }
-    .glow-teal {
-      box-shadow: 0 0 20px -5px rgba(20, 184, 166, 0.25);
-    }
-
-    /* Clean, formal portfolio print mode for district compliance */
+    .glow-amber { box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.25); }
     @media print {
       .no-print { display: none !important; }
       .print-only { display: block !important; }
@@ -37,7 +28,6 @@
   <header class="bg-[#0f172a]/95 backdrop-blur-md border-b border-amber-500/20 sticky top-0 z-30 shadow-lg no-print">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <!-- Astrophage Icon Badge -->
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 flex items-center justify-center font-extrabold text-lg shadow-inner glow-amber">
           ⚡
         </div>
@@ -50,36 +40,37 @@
         </div>
       </div>
       
-      <!-- Console Tabs -->
-      <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-mono-code">
-        <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow-sm transition">Flight Deck</button>
-        <button onclick="switchTab('matrix')" id="tab-matrix" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Telemetry Grid</button>
-        <button onclick="switchTab('reports')" id="tab-reports" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Mission Manifest</button>
+      <!-- Nav Tabs + Sync Status -->
+      <div class="flex items-center space-x-3">
+        <div id="header-sync-indicator" class="hidden sm:flex items-center space-x-1.5 text-xs font-mono-code text-slate-400">
+          <span id="sync-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span id="sync-text">Synced to Sheet</span>
+        </div>
+        <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-mono-code">
+          <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow-sm transition">Flight Deck</button>
+          <button onclick="switchTab('matrix')" id="tab-matrix" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Telemetry Grid</button>
+          <button onclick="switchTab('reports')" id="tab-reports" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Manifest</button>
+          <button onclick="switchTab('settings')" id="tab-settings" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Config</button>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Notification Toast (Rocky Easter Egg) -->
+  <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-200 bg-slate-900 border border-amber-500/40 text-slate-100 text-xs sm:text-sm font-mono-code px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2.5 pointer-events-none">
     <span class="text-amber-400 text-base">🤝</span>
-    <span id="toast-msg">Hours saved! Fist my bump!</span>
+    <span id="toast-msg">Hours recorded! Fist my bump!</span>
   </div>
 
-  <!-- Main Flight Deck Container -->
+  <!-- Main Container -->
   <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
     
-    <!-- ========================================== -->
-    <!-- TAB 1: FLIGHT DECK (OVERVIEW) -->
-    <!-- ========================================== -->
+    <!-- TAB 1: FLIGHT DECK -->
     <div id="view-overview" class="space-y-6">
-      
-      <!-- Telemetry Gauges -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        
-        <!-- Total Mission Burn -->
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-amber-500/30 transition">
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
           <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Astrophage Reserve</p>
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Astrophage Reserve</p>
             <span class="text-amber-400/50 text-xs">⚡</span>
           </div>
           <div class="mt-1 flex items-baseline space-x-1">
@@ -91,23 +82,21 @@
           </div>
         </div>
 
-        <!-- Mission Week Phase -->
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-teal-500/30 transition">
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
           <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Mission Phase</p>
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Mission Phase</p>
             <span class="text-teal-400/50 text-xs font-mono-code">CYC-18</span>
           </div>
           <div class="mt-1 flex items-baseline space-x-1">
             <span id="stat-current-week-num" class="text-2xl sm:text-3xl font-extrabold text-teal-400 font-mono-code">W2</span>
             <span class="text-xs text-slate-500 font-mono-code">of 18 Weeks</span>
           </div>
-          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-mono-code">2.0h burned this week</p>
+          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-mono-code">2.0h logged</p>
         </div>
 
-        <!-- Trajectory / Pacing -->
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition">
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
           <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Course Trajectory</p>
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Trajectory</p>
             <span class="text-emerald-400/50 text-xs font-mono-code">Δv</span>
           </div>
           <div class="mt-1 flex items-baseline space-x-1">
@@ -116,10 +105,9 @@
           <p class="text-xs text-slate-400 mt-3 font-mono-code">Floor: 16.7 hrs/week</p>
         </div>
 
-        <!-- Carnegie Credits (Milestones) -->
-        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-amber-500/30 transition">
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
           <div class="flex justify-between items-start">
-            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Milestones Achieved</p>
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400">Milestones</p>
             <span class="text-slate-500 text-xs font-mono-code">U-2.50</span>
           </div>
           <div class="mt-1 flex items-baseline space-x-1">
@@ -130,60 +118,48 @@
         </div>
       </div>
 
-      <!-- Propulsion Quick Log Interface -->
       <div class="bg-[#111827] rounded-2xl border border-slate-800 p-5 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-2">
           <div>
             <div class="flex items-center space-x-2">
               <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-              <h2 class="text-base font-bold text-white font-mono-code">PROPULSION INPUT CONSOLE</h2>
+              <h2 class="text-base font-bold text-white font-mono-code">PROPULSION LOGGING CONSOLE</h2>
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Increment study burns directly to Nora's active mission cycle.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Increments save automatically to local storage and sync to Google Sheets.</p>
           </div>
           <div class="flex items-center space-x-2">
-            <label class="text-xs font-mono-code text-slate-400">MISSION CYCLE:</label>
+            <label class="text-xs font-mono-code text-slate-400">CYCLE:</label>
             <select id="select-active-week" onchange="changeActiveWeek(this.value)" class="text-xs font-mono-code font-bold bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-amber-400 focus:ring-2 focus:ring-amber-500 focus:outline-none">
-              <!-- Populated via JS -->
             </select>
           </div>
         </div>
 
         <div id="quick-log-list" class="divide-y divide-slate-800/80 mt-2">
-          <!-- Course Rows Injected via JS -->
         </div>
       </div>
-
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 2: TELEMETRY GRID (WEEKLY MATRIX) -->
-    <!-- ========================================== -->
+    <!-- TAB 2: TELEMETRY GRID -->
     <div id="view-matrix" class="hidden space-y-4">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111827] p-4 rounded-2xl border border-slate-800">
         <div>
-          <h2 class="text-base font-bold text-white font-mono-code">MISSION DURATION MATRIX (18 CYCLES)</h2>
-          <p class="text-xs text-slate-400">Direct input telemetry. Type study hours into any cell to update logs.</p>
+          <h2 class="text-base font-bold text-white font-mono-code">FULL MISSION MATRIX</h2>
+          <p class="text-xs text-slate-400">Type into any cell to update study hours. Syncs automatically to Google Sheets.</p>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="copyToClipboardTSV()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-            <span>Copy for Google Sheets</span>
-          </button>
-          <button onclick="downloadCSV()" class="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <span>Export Mission CSV</span>
+          <button onclick="triggerManualSync()" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span>Sync to Sheet Now</span>
           </button>
         </div>
       </div>
 
-      <!-- Matrix Table Scrollable -->
       <div class="bg-[#111827] rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-xs border-collapse text-left font-mono-code">
             <thead>
               <tr class="bg-slate-950/80 border-b border-slate-800 font-bold text-slate-400">
                 <th class="p-3 sticky left-0 bg-slate-950 z-10 w-44 shadow-sm border-r border-slate-800 text-slate-300">CORE SYSTEM</th>
-                <!-- 18 Weeks Injected via JS -->
                 <script>
                   for(let i = 1; i <= 18; i++) {
                     document.write(`<th class="p-2 text-center min-w-[50px] border-l border-slate-800/80">W${i}</th>`);
@@ -193,11 +169,9 @@
               </tr>
             </thead>
             <tbody id="matrix-table-body" class="divide-y divide-slate-800/80">
-              <!-- Injected via JS -->
             </tbody>
             <tfoot>
               <tr id="matrix-total-row" class="bg-slate-950/90 font-extrabold text-white border-t-2 border-slate-700">
-                <!-- Total Row Injected via JS -->
               </tr>
             </tfoot>
           </table>
@@ -205,31 +179,20 @@
       </div>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 3: MISSION MANIFEST & PORTFOLIO -->
-    <!-- ========================================== -->
+    <!-- TAB 3: MANIFEST / AUDIT REPORT -->
     <div id="view-reports" class="hidden space-y-6">
-      
       <div class="flex items-center justify-between bg-[#111827] p-4 rounded-2xl border border-slate-800 no-print">
         <div>
-          <h2 class="text-base font-bold text-white font-mono-code">ACADEMIC MANIFEST & AUDIT</h2>
-          <p class="text-xs text-slate-400">Standardized Carnegie transcript report for Nora Peak (District Portfolio Compliant).</p>
+          <h2 class="text-base font-bold text-white font-mono-code">PORTFOLIO AUDIT REPORT</h2>
+          <p class="text-xs text-slate-400">Print-ready transcript document for district compliance reviews.</p>
         </div>
-        <div class="flex items-center space-x-2">
-          <button onclick="resetToDefaults()" class="text-xs font-mono-code text-slate-400 hover:text-rose-400 px-3 py-2 border border-slate-800 rounded-xl hover:bg-rose-950/30 transition">
-            Purge/Reset Data
-          </button>
-          <button onclick="window.print()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono-code font-bold rounded-xl flex items-center space-x-2 transition shadow-md glow-amber">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Print Compliance Portfolio</span>
-          </button>
-        </div>
+        <button onclick="window.print()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono-code font-bold rounded-xl flex items-center space-x-2 transition shadow-md">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          <span>Print Portfolio Report</span>
+        </button>
       </div>
 
-      <!-- Printable Report Card (Strips styling on physical print) -->
       <div class="printable-card bg-[#111827] rounded-2xl border border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
-        
-        <!-- Header Info -->
         <div class="border-b border-slate-800 pb-4 printable-border">
           <div class="flex justify-between items-start">
             <div>
@@ -238,55 +201,44 @@
             </div>
             <div class="text-right">
               <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono-code printable-text">SEMESTER 1</span>
-              <p class="text-[10px] text-slate-500 mt-1 printable-text">Standard Carnegie Metric: 60h / 0.50 Credit</p>
+              <p class="text-[10px] text-slate-500 mt-1 printable-text">Standard: 60h / 0.50 Credit</p>
             </div>
           </div>
         </div>
 
-        <!-- Academic Discipline Breakdown -->
         <div>
           <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 printable-text font-mono-code">Curriculum Balance Distribution</h4>
           <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden flex" id="balance-bar">
-            <div id="bar-stem" class="bg-amber-500 h-full transition-all" style="width: 50%" title="STEM Disciplines"></div>
-            <div id="bar-humanities" class="bg-teal-500 h-full transition-all" style="width: 50%" title="Humanities Disciplines"></div>
+            <div id="bar-stem" class="bg-amber-500 h-full transition-all" style="width: 50%"></div>
+            <div id="bar-humanities" class="bg-teal-500 h-full transition-all" style="width: 50%"></div>
           </div>
           <div class="flex justify-between items-center text-xs text-slate-400 mt-2 font-medium">
-            <div class="flex items-center space-x-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
-              <span class="printable-text">STEM (Geometry + Biology): <strong id="rep-stem-hrs" class="text-slate-200 printable-text font-mono-code">2.0 hrs</strong></span>
-            </div>
-            <div class="flex items-center space-x-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
-              <span class="printable-text">Humanities (English 9, US History, Civics): <strong id="rep-humanities-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></span>
-            </div>
+            <div>STEM: <strong id="rep-stem-hrs" class="text-slate-200 printable-text font-mono-code">2.0 hrs</strong></div>
+            <div>Humanities: <strong id="rep-humanities-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></div>
           </div>
         </div>
 
-        <!-- Core Course Table -->
         <div class="overflow-x-auto">
           <table class="w-full text-xs text-left border-collapse font-mono-code">
             <thead>
               <tr class="bg-slate-950/60 border-y border-slate-800 text-slate-400 font-bold printable-text printable-border">
                 <th class="py-2.5 px-3">Subject Title</th>
                 <th class="py-2.5 px-3">Classification</th>
-                <th class="py-2.5 px-3 text-right">Floor Req</th>
-                <th class="py-2.5 px-3 text-right">Burned (Logged)</th>
+                <th class="py-2.5 px-3 text-right">Target</th>
+                <th class="py-2.5 px-3 text-right">Logged</th>
                 <th class="py-2.5 px-3 text-right">Completion</th>
                 <th class="py-2.5 px-3 text-right">Carnegie Credit</th>
               </tr>
             </thead>
             <tbody id="report-table-body" class="divide-y divide-slate-800/80 printable-border">
-              <!-- Populated via JS -->
             </tbody>
             <tfoot>
               <tr id="report-table-footer" class="border-t-2 border-slate-700 font-bold text-white bg-slate-950/60 printable-text printable-border">
-                <!-- Populated via JS -->
               </tr>
             </tfoot>
           </table>
         </div>
 
-        <!-- Official Sign-off Area -->
         <div class="pt-8 border-t border-slate-800 grid grid-cols-2 gap-8 text-xs text-slate-400 printable-text printable-border">
           <div>
             <div class="border-b border-slate-700 pb-1 h-8 printable-border"></div>
@@ -297,16 +249,48 @@
             <p class="mt-1 font-medium printable-text">Date Logged & Verified</p>
           </div>
         </div>
-
       </div>
+    </div>
 
+    <!-- TAB 4: CONFIGURATION & GOOGLE SHEETS WEBHOOK -->
+    <div id="view-settings" class="hidden space-y-6">
+      <div class="bg-[#111827] p-6 rounded-2xl border border-slate-800 shadow-sm space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-white font-mono-code">GOOGLE SHEETS LIVE LINK</h2>
+          <p class="text-xs text-slate-400">Paste your deployed Apps Script Web App URL below. Every hour logged will auto-sync to your sheet.</p>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <div>
+            <label class="block text-xs font-mono-code text-slate-300 mb-1">APPS SCRIPT WEBHOOK URL</label>
+            <div class="flex space-x-2">
+              <input type="url" id="input-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 text-xs font-mono-code bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 focus:ring-2 focus:ring-amber-500 outline-none">
+              <button onclick="saveWebhookUrl()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono-code font-bold text-xs rounded-xl transition">Save</button>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-3 pt-2">
+            <button onclick="triggerManualSync()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-mono-code font-bold text-xs rounded-xl flex items-center space-x-2 transition">
+              <span>Test Sync to Sheet Now</span>
+            </button>
+            <span id="sync-manual-status" class="text-xs font-mono-code text-slate-400"></span>
+          </div>
+        </div>
+
+        <div class="pt-6 border-t border-slate-800 flex justify-between items-center">
+          <div>
+            <h4 class="text-xs font-mono-code text-slate-300">Baseline Reset</h4>
+            <p class="text-[11px] text-slate-500">Restore Week 2 defaults (1h Geometry, 1h Biology).</p>
+          </div>
+          <button onclick="resetToDefaults()" class="text-xs font-mono-code text-rose-400 border border-rose-900/60 px-3 py-1.5 rounded-lg hover:bg-rose-950/30 transition">
+            Reset Data
+          </button>
+        </div>
+      </div>
     </div>
 
   </main>
 
-  <!-- ========================================== -->
-  <!-- MISSION LOGIC (JS) -->
-  <!-- ========================================== -->
   <script>
     const COURSES = [
       { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60, icon: '📐' },
@@ -318,6 +302,7 @@
 
     const DEFAULT_DATA = {
       activeWeek: 2,
+      webhookUrl: '',
       matrix: {
         geometry:  { 1: 0, 2: 1.0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
         english9:  { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
@@ -328,18 +313,97 @@
     };
 
     let appState = loadState();
+    let autoSyncTimer = null;
 
     function loadState() {
-      const saved = localStorage.getItem('noras_hailmary_daybook');
+      const saved = localStorage.getItem('noras_live_daybook_v2');
       if (saved) {
         try { return JSON.parse(saved); } catch(e) {}
       }
       return JSON.parse(JSON.stringify(DEFAULT_DATA));
     }
 
-    function saveState() {
-      localStorage.setItem('noras_hailmary_daybook', JSON.stringify(appState));
+    function saveState(skipSync) {
+      localStorage.setItem('noras_live_daybook_v2', JSON.stringify(appState));
       renderAll();
+      if (!skipSync && appState.webhookUrl) {
+        scheduleAutoSync();
+      }
+    }
+
+    function scheduleAutoSync() {
+      setSyncStatus('saving');
+      clearTimeout(autoSyncTimer);
+      autoSyncTimer = setTimeout(() => {
+        dispatchToGoogleSheet();
+      }, 1200); // Debounce 1.2s so multiple rapid taps combine into one sync
+    }
+
+    function setSyncStatus(state) {
+      const dot = document.getElementById('sync-dot');
+      const text = document.getElementById('sync-text');
+      if (state === 'saving') {
+        dot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+        text.innerText = "Syncing to Sheet...";
+        text.className = "text-amber-400";
+      } else if (state === 'synced') {
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        text.innerText = "Synced to Sheet";
+        text.className = "text-slate-400";
+      } else if (state === 'no-url') {
+        dot.className = "w-2 h-2 rounded-full bg-slate-500";
+        text.innerText = "Sheet not linked";
+        text.className = "text-slate-500";
+      }
+    }
+
+    async function dispatchToGoogleSheet() {
+      if (!appState.webhookUrl) {
+        setSyncStatus('no-url');
+        return;
+      }
+      try {
+        const payload = {
+          student: "Nora Peak",
+          matrix: appState.matrix
+        };
+
+        // Use text/plain with no-cors to avoid browser pre-flight blocks with Google Apps Script
+        await fetch(appState.webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        setSyncStatus('synced');
+      } catch (err) {
+        const dot = document.getElementById('sync-dot');
+        const text = document.getElementById('sync-text');
+        dot.className = "w-2 h-2 rounded-full bg-rose-400";
+        text.innerText = "Sync Error";
+        text.className = "text-rose-400";
+      }
+    }
+
+    function saveWebhookUrl() {
+      const url = document.getElementById('input-webhook-url').value.trim();
+      appState.webhookUrl = url;
+      saveState(true);
+      showToast('Webhook saved! Testing connection...');
+      dispatchToGoogleSheet();
+    }
+
+    async function triggerManualSync() {
+      const stat = document.getElementById('sync-manual-status');
+      if (!appState.webhookUrl) {
+        alert("Please paste your Google Apps Script URL first.");
+        return;
+      }
+      stat.innerText = "Transmitting...";
+      await dispatchToGoogleSheet();
+      stat.innerText = "Data dispatched to Sheet!";
+      showToast("Data sent to Google Sheet!");
     }
 
     function showToast(msg) {
@@ -349,11 +413,11 @@
       toast.classList.remove('translate-y-20', 'opacity-0');
       setTimeout(() => {
         toast.classList.add('translate-y-20', 'opacity-0');
-      }, 1900);
+      }, 2000);
     }
 
     function switchTab(tabId) {
-      ['overview', 'matrix', 'reports'].forEach(tab => {
+      ['overview', 'matrix', 'reports', 'settings'].forEach(tab => {
         document.getElementById(`view-${tab}`).classList.toggle('hidden', tab !== tabId);
         const btn = document.getElementById(`tab-${tab}`);
         if (tab === tabId) {
@@ -380,7 +444,7 @@
 
     function changeActiveWeek(val) {
       appState.activeWeek = parseInt(val, 10);
-      saveState();
+      saveState(true);
     }
 
     function adjustHours(courseId, delta) {
@@ -395,30 +459,24 @@
       const num = parseFloat(val);
       appState.matrix[courseId][week] = isNaN(num) || num < 0 ? 0 : Math.round(num * 10) / 10;
       saveState();
-      showToast(`Cycle ${week} telemetry logged`);
+      showToast(`Cycle ${week} logged`);
     }
 
     function getCourseTotal(courseId) {
       let sum = 0;
-      for (let w = 1; w <= 18; w++) {
-        sum += (appState.matrix[courseId][w] || 0);
-      }
+      for (let w = 1; w <= 18; w++) sum += (appState.matrix[courseId][w] || 0);
       return Math.round(sum * 10) / 10;
     }
 
     function getWeekTotal(week) {
       let sum = 0;
-      COURSES.forEach(c => {
-        sum += (appState.matrix[c.id][week] || 0);
-      });
+      COURSES.forEach(c => sum += (appState.matrix[c.id][week] || 0));
       return Math.round(sum * 10) / 10;
     }
 
     function getGrandTotal() {
       let sum = 0;
-      COURSES.forEach(c => {
-        sum += getCourseTotal(c.id);
-      });
+      COURSES.forEach(c => sum += getCourseTotal(c.id));
       return Math.round(sum * 10) / 10;
     }
 
@@ -429,7 +487,7 @@
       document.getElementById('stat-total-hrs').innerText = grandTotal.toFixed(1);
       document.getElementById('bar-total-progress').style.width = Math.min(100, (grandTotal / 300) * 100) + '%';
       document.getElementById('stat-current-week-num').innerText = `W${appState.activeWeek}`;
-      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)}h burned in Cycle ${appState.activeWeek}`;
+      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)}h burned`;
       
       const creditsEarned = (grandTotal / 60) * 0.5;
       document.getElementById('stat-credits-earned').innerText = creditsEarned.toFixed(2);
@@ -437,10 +495,10 @@
       const targetPace = (300 / 18) * appState.activeWeek;
       const pacingEl = document.getElementById('stat-pacing-status');
       if (grandTotal >= targetPace) {
-        pacingEl.innerText = "Amaze! Ahead of Pace";
+        pacingEl.innerText = "Amaze! On Track";
         pacingEl.className = "text-lg sm:text-xl font-extrabold text-amber-400 font-mono-code";
       } else if (grandTotal >= targetPace * 0.8) {
-        pacingEl.innerText = "Good, Good. On Track";
+        pacingEl.innerText = "Good. On Track";
         pacingEl.className = "text-lg sm:text-xl font-extrabold text-teal-400 font-mono-code";
       } else {
         pacingEl.innerText = "More Burn Needed";
@@ -462,7 +520,7 @@
               <span class="text-sm font-bold text-slate-100 font-mono-code">${c.name}</span>
               <span class="text-[10px] uppercase font-mono-code font-bold px-1.5 py-0.5 rounded ${c.cat === 'STEM' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' : 'bg-teal-500/10 border border-teal-500/30 text-teal-400'}">${c.cat}</span>
             </div>
-            <p class="text-xs text-slate-400 font-mono-code mt-0.5">Reserve: ${total.toFixed(1)} / ${c.target}.0h</p>
+            <p class="text-xs text-slate-400 font-mono-code mt-0.5">Burned: ${total.toFixed(1)} / ${c.target}.0h</p>
           </div>
           <div class="flex items-center space-x-1.5 font-mono-code">
             <button onclick="adjustHours('${c.id}', -0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold flex items-center justify-center transition">-</button>
@@ -498,7 +556,7 @@
       });
 
       const totalRow = document.getElementById('matrix-total-row');
-      let totalCells = `<td class="p-3 sticky left-0 bg-slate-950 border-r border-slate-800 text-amber-400">MISSION BURN TOTAL</td>`;
+      let totalCells = `<td class="p-3 sticky left-0 bg-slate-950 border-r border-slate-800 text-amber-400">TOTAL BURN</td>`;
       for (let w = 1; w <= 18; w++) {
         const wTot = getWeekTotal(w);
         totalCells += `<td class="p-2 text-center border-l border-slate-800/80 font-bold ${w === appState.activeWeek ? 'text-amber-400' : 'text-slate-300'}">${wTot > 0 ? wTot.toFixed(1) : '-'}</td>`;
@@ -506,7 +564,7 @@
       totalCells += `<td class="p-3 text-right font-extrabold text-amber-400 border-l border-slate-800">${grandTotal.toFixed(1)}</td>`;
       totalRow.innerHTML = totalCells;
 
-      // Reports & Balance
+      // Reports Tab
       let stemHrs = 0;
       let humanitiesHrs = 0;
       COURSES.forEach(c => {
@@ -543,56 +601,26 @@
 
       const repFooter = document.getElementById('report-table-footer');
       repFooter.innerHTML = `
-        <td class="py-3 px-3 printable-text" colspan="2">TOTAL ACADEMIC CORE UNITS</td>
+        <td class="py-3 px-3 printable-text" colspan="2">TOTAL ACADEMIC UNITS</td>
         <td class="py-3 px-3 text-right printable-text">300.0h</td>
         <td class="py-3 px-3 text-right text-amber-400 printable-text">${grandTotal.toFixed(1)}h</td>
         <td class="py-3 px-3 text-right printable-text">${Math.round((grandTotal / 300) * 100)}%</td>
         <td class="py-3 px-3 text-right text-teal-400 printable-text">${creditsEarned.toFixed(2)} / 2.50</td>
       `;
-    }
 
-    function copyToClipboardTSV() {
-      let tsv = "Course\t" + Array.from({length: 18}, (_, i) => `W${i+1}`).join("\t") + "\tTotal\n";
-      COURSES.forEach(c => {
-        const row = [c.name];
-        for (let w = 1; w <= 18; w++) {
-          const val = appState.matrix[c.id][w] || 0;
-          row.push(val > 0 ? val : "");
-        }
-        row.push(getCourseTotal(c.id));
-        tsv += row.join("\t") + "\n";
-      });
-
-      navigator.clipboard.writeText(tsv).then(() => {
-        showToast("Copied to clipboard! Ready to paste into Sheets.");
-      });
-    }
-
-    function downloadCSV() {
-      let csv = "Course," + Array.from({length: 18}, (_, i) => `Cycle ${i+1}`).join(",") + ",Total\n";
-      COURSES.forEach(c => {
-        const row = [`"${c.name}"`];
-        for (let w = 1; w <= 18; w++) {
-          row.push(appState.matrix[c.id][w] || 0);
-        }
-        row.push(getCourseTotal(c.id));
-        csv += row.join(",") + "\n";
-      });
-
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Nora_HailMary_MissionLog_W${appState.activeWeek}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      if (appState.webhookUrl) {
+        document.getElementById('input-webhook-url').value = appState.webhookUrl;
+        setSyncStatus('synced');
+      } else {
+        setSyncStatus('no-url');
+      }
     }
 
     function resetToDefaults() {
-      if (confirm("Reset mission logs back to Week 2 default?")) {
+      if (confirm("Reset logs to Week 2 default?")) {
         appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
         saveState();
-        showToast("Telemetry restored to baseline");
+        showToast("Baseline restored");
       }
     }
 
