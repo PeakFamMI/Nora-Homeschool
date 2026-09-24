@@ -24,7 +24,6 @@
 </head>
 <body class="bg-[#0b0f17] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
   
-  <!-- Telemetry Header -->
   <header class="bg-[#0f172a]/95 backdrop-blur-md border-b border-amber-500/20 sticky top-0 z-30 shadow-lg no-print">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -40,11 +39,10 @@
         </div>
       </div>
       
-      <!-- Nav Tabs + Sync Status -->
       <div class="flex items-center space-x-3">
         <div id="header-sync-indicator" class="hidden sm:flex items-center space-x-1.5 text-xs font-mono-code text-slate-400">
-          <span id="sync-dot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
-          <span id="sync-text">Synced to Sheet</span>
+          <span id="sync-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span id="sync-text">Checking Sheet...</span>
         </div>
         <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-mono-code">
           <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow-sm transition">Flight Deck</button>
@@ -56,16 +54,14 @@
     </div>
   </header>
 
-  <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-200 bg-slate-900 border border-amber-500/40 text-slate-100 text-xs sm:text-sm font-mono-code px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2.5 pointer-events-none">
     <span class="text-amber-400 text-base">🤝</span>
     <span id="toast-msg">Hours recorded! Fist my bump!</span>
   </div>
 
-  <!-- Main Container -->
   <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
     
-    <!-- TAB 1: FLIGHT DECK -->
+    <!-- TAB 1: OVERVIEW -->
     <div id="view-overview" class="space-y-6">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
@@ -74,11 +70,11 @@
             <span class="text-amber-400/50 text-xs">⚡</span>
           </div>
           <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-total-hrs" class="text-2xl sm:text-3xl font-extrabold text-white font-mono-code">2.0</span>
+            <span id="stat-total-hrs" class="text-2xl sm:text-3xl font-extrabold text-white font-mono-code">0.0</span>
             <span class="text-xs text-slate-500 font-mono-code">/ 300.0h</span>
           </div>
           <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div id="bar-total-progress" class="bg-gradient-to-r from-amber-500 to-amber-400 h-full rounded-full transition-all duration-300" style="width: 0.7%"></div>
+            <div id="bar-total-progress" class="bg-gradient-to-r from-amber-500 to-amber-400 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
           </div>
         </div>
 
@@ -91,7 +87,7 @@
             <span id="stat-current-week-num" class="text-2xl sm:text-3xl font-extrabold text-teal-400 font-mono-code">W2</span>
             <span class="text-xs text-slate-500 font-mono-code">of 18 Weeks</span>
           </div>
-          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-mono-code">2.0h logged</p>
+          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-mono-code">0.0h logged</p>
         </div>
 
         <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm">
@@ -125,7 +121,7 @@
               <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
               <h2 class="text-base font-bold text-white font-mono-code">PROPULSION LOGGING CONSOLE</h2>
             </div>
-            <p class="text-xs text-slate-400 mt-0.5">Increments save automatically to local storage and sync to Google Sheets.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Logged hours automatically sync to your Google Sheet in the background.</p>
           </div>
           <div class="flex items-center space-x-2">
             <label class="text-xs font-mono-code text-slate-400">CYCLE:</label>
@@ -134,8 +130,7 @@
           </div>
         </div>
 
-        <div id="quick-log-list" class="divide-y divide-slate-800/80 mt-2">
-        </div>
+        <div id="quick-log-list" class="divide-y divide-slate-800/80 mt-2"></div>
       </div>
     </div>
 
@@ -144,12 +139,16 @@
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111827] p-4 rounded-2xl border border-slate-800">
         <div>
           <h2 class="text-base font-bold text-white font-mono-code">FULL MISSION MATRIX</h2>
-          <p class="text-xs text-slate-400">Type into any cell to update study hours. Syncs automatically to Google Sheets.</p>
+          <p class="text-xs text-slate-400">Type into any cell to update study hours.</p>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="triggerManualSync()" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+          <button onclick="pullFromGoogleSheet()" class="px-3 py-1.5 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Pull from Sheet</span>
+          </button>
+          <button onclick="dispatchToGoogleSheet()" class="px-3 py-1.5 bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-800 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
             <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span>Sync to Sheet Now</span>
+            <span>Push to Sheet</span>
           </button>
         </div>
       </div>
@@ -168,18 +167,16 @@
                 <th class="p-3 text-right font-bold text-amber-400 border-l border-slate-800 min-w-[70px]">TOTAL</th>
               </tr>
             </thead>
-            <tbody id="matrix-table-body" class="divide-y divide-slate-800/80">
-            </tbody>
+            <tbody id="matrix-table-body" class="divide-y divide-slate-800/80"></tbody>
             <tfoot>
-              <tr id="matrix-total-row" class="bg-slate-950/90 font-extrabold text-white border-t-2 border-slate-700">
-              </tr>
+              <tr id="matrix-total-row" class="bg-slate-950/90 font-extrabold text-white border-t-2 border-slate-700"></tr>
             </tfoot>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB 3: MANIFEST / AUDIT REPORT -->
+    <!-- TAB 3: MANIFEST -->
     <div id="view-reports" class="hidden space-y-6">
       <div class="flex items-center justify-between bg-[#111827] p-4 rounded-2xl border border-slate-800 no-print">
         <div>
@@ -213,7 +210,7 @@
             <div id="bar-humanities" class="bg-teal-500 h-full transition-all" style="width: 50%"></div>
           </div>
           <div class="flex justify-between items-center text-xs text-slate-400 mt-2 font-medium">
-            <div>STEM: <strong id="rep-stem-hrs" class="text-slate-200 printable-text font-mono-code">2.0 hrs</strong></div>
+            <div>STEM: <strong id="rep-stem-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></div>
             <div>Humanities: <strong id="rep-humanities-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></div>
           </div>
         </div>
@@ -230,11 +227,9 @@
                 <th class="py-2.5 px-3 text-right">Carnegie Credit</th>
               </tr>
             </thead>
-            <tbody id="report-table-body" class="divide-y divide-slate-800/80 printable-border">
-            </tbody>
+            <tbody id="report-table-body" class="divide-y divide-slate-800/80 printable-border"></tbody>
             <tfoot>
-              <tr id="report-table-footer" class="border-t-2 border-slate-700 font-bold text-white bg-slate-950/60 printable-text printable-border">
-              </tr>
+              <tr id="report-table-footer" class="border-t-2 border-slate-700 font-bold text-white bg-slate-950/60 printable-text printable-border"></tr>
             </tfoot>
           </table>
         </div>
@@ -252,12 +247,12 @@
       </div>
     </div>
 
-    <!-- TAB 4: CONFIGURATION & GOOGLE SHEETS WEBHOOK -->
+    <!-- TAB 4: CONFIG -->
     <div id="view-settings" class="hidden space-y-6">
       <div class="bg-[#111827] p-6 rounded-2xl border border-slate-800 shadow-sm space-y-4">
         <div>
-          <h2 class="text-base font-bold text-white font-mono-code">GOOGLE SHEETS LIVE LINK</h2>
-          <p class="text-xs text-slate-400">Paste your deployed Apps Script Web App URL below. Every hour logged will auto-sync to your sheet.</p>
+          <h2 class="text-base font-bold text-white font-mono-code">TWO-WAY GOOGLE SHEETS LINK</h2>
+          <p class="text-xs text-slate-400">Save your web app URL here. You can pull existing hours directly from your sheet or push new hours automatically.</p>
         </div>
 
         <div class="space-y-3 pt-2">
@@ -270,21 +265,14 @@
           </div>
 
           <div class="flex items-center space-x-3 pt-2">
-            <button onclick="triggerManualSync()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-mono-code font-bold text-xs rounded-xl flex items-center space-x-2 transition">
-              <span>Test Sync to Sheet Now</span>
+            <button onclick="pullFromGoogleSheet()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-mono-code font-bold text-xs rounded-xl flex items-center space-x-2 transition">
+              <span>Pull Current Hours from Sheet</span>
             </button>
-            <span id="sync-manual-status" class="text-xs font-mono-code text-slate-400"></span>
+            <button onclick="dispatchToGoogleSheet()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-mono-code font-bold text-xs rounded-xl flex items-center space-x-2 transition">
+              <span>Push App Hours to Sheet</span>
+            </button>
           </div>
-        </div>
-
-        <div class="pt-6 border-t border-slate-800 flex justify-between items-center">
-          <div>
-            <h4 class="text-xs font-mono-code text-slate-300">Baseline Reset</h4>
-            <p class="text-[11px] text-slate-500">Restore Week 2 defaults (1h Geometry, 1h Biology).</p>
-          </div>
-          <button onclick="resetToDefaults()" class="text-xs font-mono-code text-rose-400 border border-rose-900/60 px-3 py-1.5 rounded-lg hover:bg-rose-950/30 transition">
-            Reset Data
-          </button>
+          <p id="sync-manual-status" class="text-xs font-mono-code text-slate-400 pt-1"></p>
         </div>
       </div>
     </div>
@@ -304,11 +292,11 @@
       activeWeek: 2,
       webhookUrl: '',
       matrix: {
-        geometry:  { 1: 0, 2: 1.0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        english9:  { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        biology:   { 1: 0, 2: 1.0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        ushistory: { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
-        civics:    { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 }
+        geometry:  { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        english9:  { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        biology:   { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        ushistory: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        civics:    { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 }
       }
     };
 
@@ -316,7 +304,7 @@
     let autoSyncTimer = null;
 
     function loadState() {
-      const saved = localStorage.getItem('noras_live_daybook_v2');
+      const saved = localStorage.getItem('noras_live_daybook_v3');
       if (saved) {
         try { return JSON.parse(saved); } catch(e) {}
       }
@@ -324,7 +312,7 @@
     }
 
     function saveState(skipSync) {
-      localStorage.setItem('noras_live_daybook_v2', JSON.stringify(appState));
+      localStorage.setItem('noras_live_daybook_v3', JSON.stringify(appState));
       renderAll();
       if (!skipSync && appState.webhookUrl) {
         scheduleAutoSync();
@@ -336,7 +324,7 @@
       clearTimeout(autoSyncTimer);
       autoSyncTimer = setTimeout(() => {
         dispatchToGoogleSheet();
-      }, 1200); // Debounce 1.2s so multiple rapid taps combine into one sync
+      }, 1200);
     }
 
     function setSyncStatus(state) {
@@ -348,7 +336,7 @@
         text.className = "text-amber-400";
       } else if (state === 'synced') {
         dot.className = "w-2 h-2 rounded-full bg-emerald-400";
-        text.innerText = "Synced to Sheet";
+        text.innerText = "Synced with Sheet";
         text.className = "text-slate-400";
       } else if (state === 'no-url') {
         dot.className = "w-2 h-2 rounded-full bg-slate-500";
@@ -357,6 +345,37 @@
       }
     }
 
+    // PULL DATA FROM GOOGLE SHEETS
+    async function pullFromGoogleSheet() {
+      const stat = document.getElementById('sync-manual-status');
+      if (!appState.webhookUrl) {
+        alert("Please save your Google Apps Script URL first.");
+        return;
+      }
+
+      stat.innerText = "Reading data from Google Sheet...";
+      setSyncStatus('saving');
+
+      try {
+        const res = await fetch(appState.webhookUrl, { redirect: "follow" });
+        const json = await res.json();
+        
+        if (json && json.status === 'ok' && json.matrix) {
+          appState.matrix = json.matrix;
+          saveState(true);
+          stat.innerText = "Successfully loaded latest hours from Google Sheet!";
+          setSyncStatus('synced');
+          showToast("Sheet data loaded! Amaze! 🤝");
+        } else {
+          stat.innerText = "Received response, but matrix format didn't match.";
+        }
+      } catch (err) {
+        stat.innerText = "Error reading Sheet. Check that Apps Script is deployed with 'Anyone' access.";
+        setSyncStatus('no-url');
+      }
+    }
+
+    // PUSH DATA TO GOOGLE SHEETS
     async function dispatchToGoogleSheet() {
       if (!appState.webhookUrl) {
         setSyncStatus('no-url');
@@ -368,7 +387,6 @@
           matrix: appState.matrix
         };
 
-        // Use text/plain with no-cors to avoid browser pre-flight blocks with Google Apps Script
         await fetch(appState.webhookUrl, {
           method: 'POST',
           mode: 'no-cors',
@@ -390,20 +408,8 @@
       const url = document.getElementById('input-webhook-url').value.trim();
       appState.webhookUrl = url;
       saveState(true);
-      showToast('Webhook saved! Testing connection...');
-      dispatchToGoogleSheet();
-    }
-
-    async function triggerManualSync() {
-      const stat = document.getElementById('sync-manual-status');
-      if (!appState.webhookUrl) {
-        alert("Please paste your Google Apps Script URL first.");
-        return;
-      }
-      stat.innerText = "Transmitting...";
-      await dispatchToGoogleSheet();
-      stat.innerText = "Data dispatched to Sheet!";
-      showToast("Data sent to Google Sheet!");
+      showToast('Webhook saved! Pulling Sheet data...');
+      pullFromGoogleSheet();
     }
 
     function showToast(msg) {
@@ -487,7 +493,7 @@
       document.getElementById('stat-total-hrs').innerText = grandTotal.toFixed(1);
       document.getElementById('bar-total-progress').style.width = Math.min(100, (grandTotal / 300) * 100) + '%';
       document.getElementById('stat-current-week-num').innerText = `W${appState.activeWeek}`;
-      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)}h burned`;
+      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)}h logged`;
       
       const creditsEarned = (grandTotal / 60) * 0.5;
       document.getElementById('stat-credits-earned').innerText = creditsEarned.toFixed(2);
@@ -505,7 +511,6 @@
         pacingEl.className = "text-lg sm:text-xl font-extrabold text-rose-400 font-mono-code";
       }
 
-      // Quick Log Console
       const quickLogEl = document.getElementById('quick-log-list');
       quickLogEl.innerHTML = '';
       COURSES.forEach(c => {
@@ -532,7 +537,6 @@
         quickLogEl.appendChild(div);
       });
 
-      // Matrix Grid
       const matrixTbody = document.getElementById('matrix-table-body');
       matrixTbody.innerHTML = '';
       COURSES.forEach(c => {
@@ -564,7 +568,6 @@
       totalCells += `<td class="p-3 text-right font-extrabold text-amber-400 border-l border-slate-800">${grandTotal.toFixed(1)}</td>`;
       totalRow.innerHTML = totalCells;
 
-      // Reports Tab
       let stemHrs = 0;
       let humanitiesHrs = 0;
       COURSES.forEach(c => {
@@ -610,22 +613,16 @@
 
       if (appState.webhookUrl) {
         document.getElementById('input-webhook-url').value = appState.webhookUrl;
-        setSyncStatus('synced');
-      } else {
-        setSyncStatus('no-url');
-      }
-    }
-
-    function resetToDefaults() {
-      if (confirm("Reset logs to Week 2 default?")) {
-        appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
-        saveState();
-        showToast("Baseline restored");
       }
     }
 
     populateWeekSelector();
     renderAll();
+
+    // Auto-fetch current Sheet data when opened if webhook URL is set
+    if (appState.webhookUrl) {
+      pullFromGoogleSheet();
+    }
   </script>
 </body>
 </html>
