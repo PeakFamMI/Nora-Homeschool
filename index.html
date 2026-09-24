@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nora's Academic Daybook</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    @media print {
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+      body { background: white !important; color: black !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col antialiased">
+  
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          N
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Nora's Daybook</h1>
+          <p class="text-xs text-slate-500 font-medium">Grade 9 Core Academic Tracker</p>
+        </div>
+      </div>
+      
+      <!-- Nav Tabs -->
+      <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+        <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-white shadow-xs text-indigo-600">Overview</button>
+        <button onclick="switchTab('matrix')" id="tab-matrix" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Weekly Log</button>
+        <button onclick="switchTab('reports')" id="tab-reports" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Reports</button>
+        <button onclick="switchTab('settings')" id="tab-settings" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Settings</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Banner -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-200 bg-slate-900 text-white text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-lg flex items-center space-x-2 pointer-events-none">
+    <span id="toast-msg">Hours saved</span>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
+    
+    <!-- ========================================== -->
+    <!-- TAB 1: OVERVIEW -->
+    <!-- ========================================== -->
+    <div id="view-overview" class="space-y-6">
+      
+      <!-- Term Summary Top Stats -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Hours</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-total-hrs" class="text-2xl sm:text-3xl font-extrabold text-slate-900">2.0</span>
+            <span class="text-xs text-slate-400 font-medium">/ 300 target</span>
+          </div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+            <div id="bar-total-progress" class="bg-indigo-600 h-full rounded-full transition-all duration-300" style="width: 0.7%"></div>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Current Week</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-current-week-num" class="text-2xl sm:text-3xl font-extrabold text-indigo-600">W2</span>
+            <span class="text-xs text-slate-500 font-medium">of 18 Weeks</span>
+          </div>
+          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-medium">2.0 hrs logged this week</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Semester Pace</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-pacing-status" class="text-xl sm:text-2xl font-extrabold text-emerald-600">On Track</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-3 font-medium">Goal: ~16.5 hrs/week</p>
+        </div>
+
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Credits Earned</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-credits-earned" class="text-2xl sm:text-3xl font-extrabold text-slate-900">0.0</span>
+            <span class="text-xs text-slate-400 font-medium">/ 2.50 Credits</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-3 font-medium">60 hrs per 0.5 Credit</p>
+        </div>
+      </div>
+
+      <!-- Quick Log Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Quick Log for This Week</h2>
+            <p class="text-xs text-slate-500">Tap to log study blocks directly to the active week.</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <label class="text-xs font-medium text-slate-600">Active Week:</label>
+            <select id="select-active-week" onchange="changeActiveWeek(this.value)" class="text-xs font-bold bg-slate-100 border-none rounded-lg px-2.5 py-1.5 text-slate-800 focus:ring-2 focus:ring-indigo-500">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+        </div>
+
+        <div id="quick-log-list" class="divide-y divide-slate-100 mt-2">
+          <!-- Course Rows Injected via JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: WEEKLY LOG SPREADSHEET MATRIX -->
+    <!-- ========================================== -->
+    <div id="view-matrix" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">18-Week Full Term Grid</h2>
+          <p class="text-xs text-slate-500">Type directly into any week to edit study hours instantly.</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="copyToClipboardTSV()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+            <span>Copy for Google Sheets</span>
+          </button>
+          <button onclick="downloadCSV()" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Matrix Table Scrollable -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border-collapse text-left">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 font-bold text-slate-600">
+                <th class="p-3 sticky left-0 bg-slate-50 z-10 w-44 shadow-xs">Course Name</th>
+                <!-- 18 Weeks Injected via JS -->
+                <script>
+                  for(let i = 1; i <= 18; i++) {
+                    document.write(`<th class="p-2 text-center min-w-[50px] border-l border-slate-200">W${i}</th>`);
+                  }
+                </script>
+                <th class="p-3 text-right font-bold text-slate-900 border-l border-slate-200 min-w-[70px]">Total</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-table-body" class="divide-y divide-slate-200">
+              <!-- Injected via JS -->
+            </tbody>
+            <tfoot>
+              <tr id="matrix-total-row" class="bg-slate-50 font-extrabold text-slate-900 border-t-2 border-slate-300">
+                <!-- Total Row Injected via JS -->
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: REPORTS & PORTFOLIO -->
+    <!-- ========================================== -->
+    <div id="view-reports" class="hidden space-y-6">
+      
+      <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 no-print">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Homeschool Compliance & Transcript Summary</h2>
+          <p class="text-xs text-slate-500">Official semester progress and Carnegie unit tracking for Nora Peak.</p>
+        </div>
+        <button onclick="window.print()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl flex items-center space-x-2 transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          <span>Print Portfolio Report</span>
+        </button>
+      </div>
+
+      <!-- Printable Report Sheet -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
+        
+        <!-- Header Info -->
+        <div class="border-b border-slate-200 pb-4">
+          <div class="flex justify-between items-start">
+            <div>
+              <h3 class="text-xl font-extrabold text-slate-900">Academic Progress & Carnegie Units</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Student: <strong class="text-slate-800">Nora Peak</strong> | Academic Year: <strong>Grade 9 (2026-2027)</strong></p>
+            </div>
+            <div class="text-right">
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700">Fall Term</span>
+              <p class="text-[10px] text-slate-400 mt-1">Standard: 60h per 0.5 Credit</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Academic Discipline Breakdown -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Subject Distribution Balance</h4>
+          <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden flex" id="balance-bar">
+            <div id="bar-stem" class="bg-indigo-600 h-full transition-all" style="width: 50%" title="STEM"></div>
+            <div id="bar-humanities" class="bg-emerald-500 h-full transition-all" style="width: 50%" title="Humanities"></div>
+          </div>
+          <div class="flex justify-between items-center text-xs text-slate-500 mt-2 font-medium">
+            <div class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block"></span>
+              <span>STEM (Geometry + Biology): <strong id="rep-stem-hrs" class="text-slate-800">2.0 hrs</strong></span>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+              <span>Humanities (English 9, US History, Civics): <strong id="rep-humanities-hrs" class="text-slate-800">0.0 hrs</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Core Carnegie Course Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-y border-slate-200 text-slate-600 font-bold">
+                <th class="py-2.5 px-3">Course Title</th>
+                <th class="py-2.5 px-3">Classification</th>
+                <th class="py-2.5 px-3 text-right">Target Hrs</th>
+                <th class="py-2.5 px-3 text-right">Logged Hrs</th>
+                <th class="py-2.5 px-3 text-right">Progress</th>
+                <th class="py-2.5 px-3 text-right">Semester Credit</th>
+              </tr>
+            </thead>
+            <tbody id="report-table-body" class="divide-y divide-slate-100">
+              <!-- Populated via JS -->
+            </tbody>
+            <tfoot>
+              <tr id="report-table-footer" class="border-t-2 border-slate-300 font-bold text-slate-900 bg-slate-50">
+                <!-- Populated via JS -->
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <!-- Compliance Sign-off Area (for printed portfolios) -->
+        <div class="pt-8 border-t border-slate-200 grid grid-cols-2 gap-8 text-xs text-slate-500">
+          <div>
+            <div class="border-b border-slate-300 pb-1 h-8"></div>
+            <p class="mt-1 font-medium">Parent / Supervising Educator Signature</p>
+          </div>
+          <div>
+            <div class="border-b border-slate-300 pb-1 h-8"></div>
+            <p class="mt-1 font-medium">Date Verified</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: SETTINGS & GOOGLE SHEETS SYNC -->
+    <!-- ========================================== -->
+    <div id="view-settings" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Google Sheets Direct Connection</h2>
+          <p class="text-xs text-slate-500">Connect Nora's app straight into your master Google Sheet using a free Google Apps Script.</p>
+        </div>
+
+        <div class="space-y-3 pt-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Google Apps Script Webhook URL</label>
+            <div class="flex space-x-2">
+              <input type="url" id="input-webhook-url" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 text-xs border border-slate-200 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none">
+              <button onclick="saveWebhookUrl()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition">Save</button>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1">This URL stays saved only on this browser for security.</p>
+          </div>
+
+          <div class="flex items-center space-x-3 pt-2">
+            <button onclick="syncToGoogleSheet()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl flex items-center space-x-2 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              <span>Sync All Data to Sheet Now</span>
+            </button>
+            <span id="sync-status" class="text-xs text-slate-500"></span>
+          </div>
+        </div>
+
+        <!-- Data Reset / Backup -->
+        <div class="pt-6 border-t border-slate-200 flex justify-between items-center">
+          <div>
+            <h4 class="text-xs font-bold text-slate-800">Local Data Storage</h4>
+            <p class="text-[11px] text-slate-500">All data automatically saves to this browser's local storage.</p>
+          </div>
+          <button onclick="resetToDefaults()" class="text-xs text-rose-600 hover:text-rose-700 font-semibold px-3 py-1.5 border border-rose-200 rounded-lg hover:bg-rose-50 transition">
+            Reset to Week 2 Initial Seed
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- JAVASCRIPT APP LOGIC -->
+  <!-- ========================================== -->
+  <script>
+    // 5 Core Academic Courses (Choir and Pottery excluded per instruction)
+    const COURSES = [
+      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60 },
+      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60 },
+      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60 },
+      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60 },
+      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60 }
+    ];
+
+    // Initial state matching spreadsheet: Week 2 has 1.0h Geometry & 1.0h Biology
+    const DEFAULT_DATA = {
+      activeWeek: 2,
+      webhookUrl: '',
+      matrix: {
+        geometry:  { 1: 0, 2: 1.0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        english9:  { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        biology:   { 1: 0, 2: 1.0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        ushistory: { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 },
+        civics:    { 1: 0, 2: 0,   3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0, 15: 0, 16: 0, 17: 0, 18: 0 }
+      }
+    };
+
+    let appState = loadState();
+
+    function loadState() {
+      const saved = localStorage.getItem('noras_daybook_data');
+      if (saved) {
+        try { return JSON.parse(saved); } catch(e) {}
+      }
+      return JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+
+    function saveState() {
+      localStorage.setItem('noras_daybook_data', JSON.stringify(appState));
+      renderAll();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      toastMsg.innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 2200);
+    }
+
+    // Switch between tabs
+    function switchTab(tabId) {
+      ['overview', 'matrix', 'reports', 'settings'].forEach(tab => {
+        document.getElementById(`view-${tab}`).classList.toggle('hidden', tab !== tabId);
+        const btn = document.getElementById(`tab-${tab}`);
+        if (tab === tabId) {
+          btn.classList.add('bg-white', 'text-indigo-600', 'shadow-xs');
+          btn.classList.remove('text-slate-600');
+        } else {
+          btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-xs');
+          btn.classList.add('text-slate-600');
+        }
+      });
+    }
+
+    // Active Week Selector
+    function populateWeekSelector() {
+      const sel = document.getElementById('select-active-week');
+      sel.innerHTML = '';
+      for (let w = 1; w <= 18; w++) {
+        const opt = document.createElement('option');
+        opt.value = w;
+        opt.innerText = `Week ${w}`;
+        if (w === appState.activeWeek) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    function changeActiveWeek(val) {
+      appState.activeWeek = parseInt(val, 10);
+      saveState();
+    }
+
+    // Quick Log +/- Adjustments
+    function adjustHours(courseId, delta) {
+      const current = appState.matrix[courseId][appState.activeWeek] || 0;
+      const next = Math.max(0, Math.round((current + delta) * 10) / 10);
+      appState.matrix[courseId][appState.activeWeek] = next;
+      saveState();
+      showToast(`Updated ${courseId} to ${next} hrs`);
+    }
+
+    // Direct cell change in matrix
+    function handleCellChange(courseId, week, val) {
+      const num = parseFloat(val);
+      appState.matrix[courseId][week] = isNaN(num) || num < 0 ? 0 : Math.round(num * 10) / 10;
+      saveState();
+      showToast(`Saved Week ${week}`);
+    }
+
+    // Calculate Totals
+    function getCourseTotal(courseId) {
+      let sum = 0;
+      for (let w = 1; w <= 18; w++) {
+        sum += (appState.matrix[courseId][w] || 0);
+      }
+      return Math.round(sum * 10) / 10;
+    }
+
+    function getWeekTotal(week) {
+      let sum = 0;
+      COURSES.forEach(c => {
+        sum += (appState.matrix[c.id][week] || 0);
+      });
+      return Math.round(sum * 10) / 10;
+    }
+
+    function getGrandTotal() {
+      let sum = 0;
+      COURSES.forEach(c => {
+        sum += getCourseTotal(c.id);
+      });
+      return Math.round(sum * 10) / 10;
+    }
+
+    // Render Everything
+    function renderAll() {
+      const grandTotal = getGrandTotal();
+      const currentWeekHrs = getWeekTotal(appState.activeWeek);
+      
+      // Top Stats
+      document.getElementById('stat-total-hrs').innerText = grandTotal.toFixed(1);
+      document.getElementById('bar-total-progress').style.width = Math.min(100, (grandTotal / 300) * 100) + '%';
+      document.getElementById('stat-current-week-num').innerText = `W${appState.activeWeek}`;
+      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)} hrs in Week ${appState.activeWeek}`;
+      
+      // Credits (60 hrs = 0.5 credits)
+      const creditsEarned = (grandTotal / 60) * 0.5;
+      document.getElementById('stat-credits-earned').innerText = creditsEarned.toFixed(2);
+
+      // Pacing status based on active week
+      const targetPace = (300 / 18) * appState.activeWeek;
+      const pacingEl = document.getElementById('stat-pacing-status');
+      if (grandTotal >= targetPace) {
+        pacingEl.innerText = "Ahead of Pace";
+        pacingEl.className = "text-xl sm:text-2xl font-extrabold text-emerald-600";
+      } else if (grandTotal >= targetPace * 0.8) {
+        pacingEl.innerText = "On Track";
+        pacingEl.className = "text-xl sm:text-2xl font-extrabold text-indigo-600";
+      } else {
+        pacingEl.innerText = "Behind Pace";
+        pacingEl.className = "text-xl sm:text-2xl font-extrabold text-amber-600";
+      }
+
+      // 1. Render Quick Log List
+      const quickLogEl = document.getElementById('quick-log-list');
+      quickLogEl.innerHTML = '';
+      COURSES.forEach(c => {
+        const hrs = appState.matrix[c.id][appState.activeWeek] || 0;
+        const total = getCourseTotal(c.id);
+        const div = document.createElement('div');
+        div.className = "py-3 flex items-center justify-between";
+        div.innerHTML = `
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="text-sm font-semibold text-slate-800">${c.name}</span>
+              <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${c.cat === 'STEM' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}">${c.cat}</span>
+            </div>
+            <p class="text-xs text-slate-400">Total: ${total.toFixed(1)} / ${c.target}h</p>
+          </div>
+          <div class="flex items-center space-x-1.5">
+            <button onclick="adjustHours('${c.id}', -0.5)" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center transition">-</button>
+            <span class="w-12 text-center text-sm font-bold text-slate-900">${hrs.toFixed(1)}h</span>
+            <button onclick="adjustHours('${c.id}', 0.5)" class="w-8 h-8 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center transition">+0.5</button>
+            <button onclick="adjustHours('${c.id}', 1.0)" class="w-8 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center transition">+1h</button>
+          </div>
+        `;
+        quickLogEl.appendChild(div);
+      });
+
+      // 2. Render Full Matrix Grid
+      const matrixTbody = document.getElementById('matrix-table-body');
+      matrixTbody.innerHTML = '';
+      COURSES.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/50 transition";
+        let cells = `<td class="p-3 font-semibold text-slate-800 sticky left-0 bg-white shadow-xs border-r border-slate-200">${c.name}</td>`;
+        for (let w = 1; w <= 18; w++) {
+          const val = appState.matrix[c.id][w] || 0;
+          const isCurrent = (w === appState.activeWeek);
+          cells += `
+            <td class="p-1 border-l border-slate-200 text-center ${isCurrent ? 'bg-indigo-50/40' : ''}">
+              <input type="number" step="0.5" min="0" value="${val === 0 ? '' : val}" placeholder="-" 
+                onchange="handleCellChange('${c.id}', ${w}, this.value)"
+                class="w-full text-center py-1 bg-transparent rounded hover:bg-white focus:bg-white focus:ring-1 focus:ring-indigo-500 font-medium text-slate-800 outline-none">
+            </td>
+          `;
+        }
+        cells += `<td class="p-3 font-bold text-right text-slate-900 border-l border-slate-200">${getCourseTotal(c.id).toFixed(1)}</td>`;
+        tr.innerHTML = cells;
+        matrixTbody.appendChild(tr);
+      });
+
+      // Matrix Footer Row
+      const totalRow = document.getElementById('matrix-total-row');
+      let totalCells = `<td class="p-3 sticky left-0 bg-slate-50 border-r border-slate-200">Total Hours</td>`;
+      for (let w = 1; w <= 18; w++) {
+        const wTot = getWeekTotal(w);
+        totalCells += `<td class="p-2 text-center border-l border-slate-200 font-bold ${w === appState.activeWeek ? 'text-indigo-600' : ''}">${wTot > 0 ? wTot.toFixed(1) : '-'}</td>`;
+      }
+      totalCells += `<td class="p-3 text-right font-extrabold text-indigo-600 border-l border-slate-200">${grandTotal.toFixed(1)}</td>`;
+      totalRow.innerHTML = totalCells;
+
+      // 3. Render Reports Tab
+      let stemHrs = 0;
+      let humanitiesHrs = 0;
+      COURSES.forEach(c => {
+        const tot = getCourseTotal(c.id);
+        if (c.cat === 'STEM') stemHrs += tot;
+        else humanitiesHrs += tot;
+      });
+
+      document.getElementById('rep-stem-hrs').innerText = `${stemHrs.toFixed(1)} hrs`;
+      document.getElementById('rep-humanities-hrs').innerText = `${humanitiesHrs.toFixed(1)} hrs`;
+      
+      const stemPct = grandTotal > 0 ? (stemHrs / grandTotal) * 100 : 50;
+      const humPct = grandTotal > 0 ? (humanitiesHrs / grandTotal) * 100 : 50;
+      document.getElementById('bar-stem').style.width = stemPct + '%';
+      document.getElementById('bar-humanities').style.width = humPct + '%';
+
+      const repTbody = document.getElementById('report-table-body');
+      repTbody.innerHTML = '';
+      COURSES.forEach(c => {
+        const tot = getCourseTotal(c.id);
+        const pct = Math.min(100, Math.round((tot / c.target) * 100));
+        const credit = ((tot / c.target) * 0.5).toFixed(2);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 font-semibold text-slate-800">${c.name}</td>
+          <td class="py-2.5 px-3 text-slate-500">${c.cat}</td>
+          <td class="py-2.5 px-3 text-right text-slate-500">${c.target}h</td>
+          <td class="py-2.5 px-3 text-right font-bold text-slate-900">${tot.toFixed(1)}h</td>
+          <td class="py-2.5 px-3 text-right text-slate-600 font-medium">${pct}%</td>
+          <td class="py-2.5 px-3 text-right font-bold text-indigo-600">${credit} / 0.50</td>
+        `;
+        repTbody.appendChild(tr);
+      });
+
+      const repFooter = document.getElementById('report-table-footer');
+      repFooter.innerHTML = `
+        <td class="py-3 px-3" colspan="2">Total Academic Core</td>
+        <td class="py-3 px-3 text-right">300h</td>
+        <td class="py-3 px-3 text-right text-indigo-600">${grandTotal.toFixed(1)}h</td>
+        <td class="py-3 px-3 text-right">${Math.round((grandTotal / 300) * 100)}%</td>
+        <td class="py-3 px-3 text-right text-indigo-600">${creditsEarned.toFixed(2)} / 2.50</td>
+      `;
+
+      // 4. Update Webhook Input
+      if (appState.webhookUrl) {
+        document.getElementById('input-webhook-url').value = appState.webhookUrl;
+      }
+    }
+
+    // Save Webhook URL
+    function saveWebhookUrl() {
+      const url = document.getElementById('input-webhook-url').value.trim();
+      appState.webhookUrl = url;
+      saveState();
+      showToast('Webhook URL saved');
+    }
+
+    // Google Sheets Direct Sync via Webhook
+    async function syncToGoogleSheet() {
+      const statusEl = document.getElementById('sync-status');
+      if (!appState.webhookUrl) {
+        statusEl.innerText = "Please enter and save a Webhook URL first.";
+        statusEl.className = "text-xs text-rose-600";
+        return;
+      }
+
+      statusEl.innerText = "Syncing to Google Sheets...";
+      statusEl.className = "text-xs text-indigo-600";
+
+      try {
+        const payload = {
+          student: "Nora Peak",
+          grandTotal: getGrandTotal(),
+          matrix: appState.matrix
+        };
+
+        await fetch(appState.webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        statusEl.innerText = "Sync dispatched successfully!";
+        statusEl.className = "text-xs text-emerald-600 font-semibold";
+        showToast("Sync dispatched to Sheet");
+      } catch (err) {
+        statusEl.innerText = "Sync error: check webhook URL.";
+        statusEl.className = "text-xs text-rose-600";
+      }
+    }
+
+    // Clipboard TSV (Paste directly into Google Sheets)
+    function copyToClipboardTSV() {
+      let tsv = "Course\t" + Array.from({length: 18}, (_, i) => `W${i+1}`).join("\t") + "\tTotal\n";
+      COURSES.forEach(c => {
+        const row = [c.name];
+        for (let w = 1; w <= 18; w++) {
+          const val = appState.matrix[c.id][w] || 0;
+          row.push(val > 0 ? val : "");
+        }
+        row.push(getCourseTotal(c.id));
+        tsv += row.join("\t") + "\n";
+      });
+
+      navigator.clipboard.writeText(tsv).then(() => {
+        showToast("Copied to clipboard! Ready to paste in Sheets.");
+      });
+    }
+
+    // CSV Download
+    function downloadCSV() {
+      let csv = "Course," + Array.from({length: 18}, (_, i) => `Week ${i+1}`).join(",") + ",Total\n";
+      COURSES.forEach(c => {
+        const row = [`"${c.name}"`];
+        for (let w = 1; w <= 18; w++) {
+          row.push(appState.matrix[c.id][w] || 0);
+        }
+        row.push(getCourseTotal(c.id));
+        csv += row.join(",") + "\n";
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Nora_Homeschool_Log_W${appState.activeWeek}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function resetToDefaults() {
+      if (confirm("Reset all hours back to initial template?")) {
+        appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        saveState();
+        showToast("Reset to defaults");
+      }
+    }
+
+    // Init
+    populateWeekSelector();
+    renderAll();
+  </script>
+</body>
+</html>
