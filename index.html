@@ -1,136 +1,166 @@
+Not at all. A *Project Hail Mary* theme fits a science and study tracking app naturally.
+
+The theme can incorporate the book's core elements:
+
+* **The Aesthetic:** Clean spaceship telemetry and console HUD inspired by the *Hail Mary* and the *Blip-A* (deep space obsidian black, warm Astrophage amber/gold accents, and Eridian xenonite cyan/teal).
+* **Mission Framing:** Her 300-hour semester target becomes the **"Tau Ceti Mission Floor"**, her weekly pace tracks **"Delta-V / Trajectory Velocity"**, and Carnegie units track **"Mission Milestones"**.
+* **Subtle Easter Eggs:** Small nods like Rocky’s *"Amaze! Amaze! Amaze!"* status when ahead of pace, or *"Fist my bump!"* on toast alerts.
+* **Portfolio Integrity:** When you tap **Print Portfolio Report**, the sci-fi HUD styling strips away completely so the district transcript prints clean, formal, and black-and-white.
+
+Here is the updated `index.html`. Follow the same steps (click the Pencil icon on `index.html` in GitHub, select all, paste this, and commit):
+
+```html
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nora's Academic Daybook</title>
+  <title>Hail Mary Mission Log | Nora's Academic Console</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            }
-          }
-        }
-      }
-    }
-  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
-    /* Ensure printouts for portfolio audits stay clean white/black */
+    .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+    
+    /* Subtle Astrophage ambient glow */
+    .glow-amber {
+      box-shadow: 0 0 20px -5px rgba(245, 158, 11, 0.25);
+    }
+    .glow-teal {
+      box-shadow: 0 0 20px -5px rgba(20, 184, 166, 0.25);
+    }
+
+    /* Clean, formal portfolio print mode for district compliance */
     @media print {
       .no-print { display: none !important; }
       .print-only { display: block !important; }
-      body { background: white !important; color: black !important; }
-      .printable-card { background: white !important; color: black !important; border: 1px solid #ccc !important; }
+      body { background: white !important; color: black !important; font-family: sans-serif !important; }
+      .printable-card { background: white !important; color: black !important; border: 1px solid #ddd !important; box-shadow: none !important; }
       .printable-text { color: black !important; }
+      .printable-border { border-color: #ddd !important; }
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+<body class="bg-[#0b0f17] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-amber-500 selection:text-slate-950">
   
-  <!-- Header -->
-  <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 shadow-md no-print">
+  <!-- Telemetry Header -->
+  <header class="bg-[#0f172a]/95 backdrop-blur-md border-b border-amber-500/20 sticky top-0 z-30 shadow-lg no-print">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-extrabold text-lg shadow-inner">
-          N
+        <!-- Astrophage Icon Badge -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-slate-950 flex items-center justify-center font-extrabold text-lg shadow-inner glow-amber">
+          ⚡
         </div>
         <div>
-          <h1 class="text-base sm:text-lg font-bold text-white leading-tight">Nora's Daybook</h1>
-          <p class="text-xs text-slate-400 font-medium">Grade 9 Core Academic Tracker</p>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-base sm:text-lg font-bold text-white tracking-wide font-mono-code leading-tight">HM-NORA // ORBITAL LOG</h1>
+            <span class="text-[10px] uppercase font-mono-code font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30">TAU CETI MISSION</span>
+          </div>
+          <p class="text-xs text-slate-400 font-medium">Grade 9 Core Academic Telemetry</p>
         </div>
       </div>
       
-      <!-- Nav Tabs -->
-      <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-800/80 border border-slate-700/60 p-1 rounded-xl text-xs font-semibold">
-        <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition">Overview</button>
-        <button onclick="switchTab('matrix')" id="tab-matrix" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Weekly Log</button>
-        <button onclick="switchTab('reports')" id="tab-reports" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Reports</button>
+      <!-- Console Tabs -->
+      <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 border border-slate-800 p-1 rounded-xl text-xs font-mono-code">
+        <button onclick="switchTab('overview')" id="tab-overview" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold shadow-sm transition">Flight Deck</button>
+        <button onclick="switchTab('matrix')" id="tab-matrix" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Telemetry Grid</button>
+        <button onclick="switchTab('reports')" id="tab-reports" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-amber-400 transition font-medium">Mission Manifest</button>
       </div>
     </div>
   </header>
 
-  <!-- Notification Toast -->
-  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-200 bg-slate-800 border border-slate-700 text-slate-100 text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2 pointer-events-none">
-    <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
-    <span id="toast-msg">Hours saved</span>
+  <!-- Notification Toast (Rocky Easter Egg) -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-200 bg-slate-900 border border-amber-500/40 text-slate-100 text-xs sm:text-sm font-mono-code px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-2.5 pointer-events-none">
+    <span class="text-amber-400 text-base">🤝</span>
+    <span id="toast-msg">Hours saved! Fist my bump!</span>
   </div>
 
-  <!-- Main Content Container -->
+  <!-- Main Flight Deck Container -->
   <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6">
     
     <!-- ========================================== -->
-    <!-- TAB 1: OVERVIEW -->
+    <!-- TAB 1: FLIGHT DECK (OVERVIEW) -->
     <!-- ========================================== -->
     <div id="view-overview" class="space-y-6">
       
-      <!-- Top Summary Cards -->
+      <!-- Telemetry Gauges -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-        <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-sm">
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Total Hours</p>
+        
+        <!-- Total Mission Burn -->
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-amber-500/30 transition">
+          <div class="flex justify-between items-start">
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Astrophage Reserve</p>
+            <span class="text-amber-400/50 text-xs">⚡</span>
+          </div>
           <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-total-hrs" class="text-2xl sm:text-3xl font-extrabold text-white">2.0</span>
-            <span class="text-xs text-slate-500 font-medium">/ 300 target</span>
+            <span id="stat-total-hrs" class="text-2xl sm:text-3xl font-extrabold text-white font-mono-code">2.0</span>
+            <span class="text-xs text-slate-500 font-mono-code">/ 300.0h</span>
           </div>
           <div class="w-full bg-slate-800 h-1.5 rounded-full mt-3 overflow-hidden">
-            <div id="bar-total-progress" class="bg-indigo-500 h-full rounded-full transition-all duration-300" style="width: 0.7%"></div>
+            <div id="bar-total-progress" class="bg-gradient-to-r from-amber-500 to-amber-400 h-full rounded-full transition-all duration-300" style="width: 0.7%"></div>
           </div>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-sm">
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Current Week</p>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-current-week-num" class="text-2xl sm:text-3xl font-extrabold text-indigo-400">W2</span>
-            <span class="text-xs text-slate-500 font-medium">of 18 Weeks</span>
+        <!-- Mission Week Phase -->
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-teal-500/30 transition">
+          <div class="flex justify-between items-start">
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Mission Phase</p>
+            <span class="text-teal-400/50 text-xs font-mono-code">CYC-18</span>
           </div>
-          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-medium">2.0 hrs logged this week</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-current-week-num" class="text-2xl sm:text-3xl font-extrabold text-teal-400 font-mono-code">W2</span>
+            <span class="text-xs text-slate-500 font-mono-code">of 18 Weeks</span>
+          </div>
+          <p id="stat-week-hrs" class="text-xs text-slate-400 mt-3 font-mono-code">2.0h burned this week</p>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-sm">
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Semester Pace</p>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-pacing-status" class="text-xl sm:text-2xl font-extrabold text-emerald-400">On Track</span>
+        <!-- Trajectory / Pacing -->
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-emerald-500/30 transition">
+          <div class="flex justify-between items-start">
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Course Trajectory</p>
+            <span class="text-emerald-400/50 text-xs font-mono-code">Δv</span>
           </div>
-          <p class="text-xs text-slate-400 mt-3 font-medium">Goal: ~16.5 hrs/week</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-pacing-status" class="text-lg sm:text-xl font-extrabold text-emerald-400 font-mono-code">Amaze! On Track</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-3 font-mono-code">Floor: 16.7 hrs/week</p>
         </div>
 
-        <div class="bg-slate-900 border border-slate-800/80 p-4 rounded-2xl shadow-sm">
-          <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Credits Earned</p>
-          <div class="mt-1 flex items-baseline space-x-1">
-            <span id="stat-credits-earned" class="text-2xl sm:text-3xl font-extrabold text-white">0.0</span>
-            <span class="text-xs text-slate-500 font-medium">/ 2.50 Credits</span>
+        <!-- Carnegie Credits (Milestones) -->
+        <div class="bg-[#111827] border border-slate-800 p-4 rounded-2xl shadow-sm relative overflow-hidden group hover:border-amber-500/30 transition">
+          <div class="flex justify-between items-start">
+            <p class="text-[11px] font-mono-code uppercase font-semibold text-slate-400 tracking-wider">Milestones Achieved</p>
+            <span class="text-slate-500 text-xs font-mono-code">U-2.50</span>
           </div>
-          <p class="text-xs text-slate-400 mt-3 font-medium">60 hrs per 0.5 Credit</p>
+          <div class="mt-1 flex items-baseline space-x-1">
+            <span id="stat-credits-earned" class="text-2xl sm:text-3xl font-extrabold text-white font-mono-code">0.00</span>
+            <span class="text-xs text-slate-500 font-mono-code">/ 2.50 Credits</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-3 font-mono-code">60h per 0.50 Credit</p>
         </div>
       </div>
 
-      <!-- Quick Log Card -->
-      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-5 shadow-sm">
+      <!-- Propulsion Quick Log Interface -->
+      <div class="bg-[#111827] rounded-2xl border border-slate-800 p-5 shadow-sm">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-2">
           <div>
-            <h2 class="text-base font-bold text-white">Quick Log for Active Week</h2>
-            <p class="text-xs text-slate-400">Tap to increment study blocks directly to the selected week.</p>
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+              <h2 class="text-base font-bold text-white font-mono-code">PROPULSION INPUT CONSOLE</h2>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Increment study burns directly to Nora's active mission cycle.</p>
           </div>
           <div class="flex items-center space-x-2">
-            <label class="text-xs font-medium text-slate-400">Active Week:</label>
-            <select id="select-active-week" onchange="changeActiveWeek(this.value)" class="text-xs font-bold bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <label class="text-xs font-mono-code text-slate-400">MISSION CYCLE:</label>
+            <select id="select-active-week" onchange="changeActiveWeek(this.value)" class="text-xs font-mono-code font-bold bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-amber-400 focus:ring-2 focus:ring-amber-500 focus:outline-none">
               <!-- Populated via JS -->
             </select>
           </div>
         </div>
 
-        <div id="quick-log-list" class="divide-y divide-slate-800 mt-2">
+        <div id="quick-log-list" class="divide-y divide-slate-800/80 mt-2">
           <!-- Course Rows Injected via JS -->
         </div>
       </div>
@@ -138,47 +168,47 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 2: WEEKLY LOG SPREADSHEET MATRIX -->
+    <!-- TAB 2: TELEMETRY GRID (WEEKLY MATRIX) -->
     <!-- ========================================== -->
     <div id="view-matrix" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#111827] p-4 rounded-2xl border border-slate-800">
         <div>
-          <h2 class="text-base font-bold text-white">18-Week Full Term Grid</h2>
-          <p class="text-xs text-slate-400">Type directly into any week to edit study hours instantly.</p>
+          <h2 class="text-base font-bold text-white font-mono-code">MISSION DURATION MATRIX (18 CYCLES)</h2>
+          <p class="text-xs text-slate-400">Direct input telemetry. Type study hours into any cell to update logs.</p>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="copyToClipboardTSV()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+          <button onclick="copyToClipboardTSV()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
             <span>Copy for Google Sheets</span>
           </button>
-          <button onclick="downloadCSV()" class="px-3 py-1.5 bg-indigo-950 hover:bg-indigo-900 text-indigo-300 border border-indigo-800 font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
-            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-            <span>Export CSV</span>
+          <button onclick="downloadCSV()" class="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono-code font-semibold text-xs rounded-xl flex items-center space-x-1.5 transition">
+            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+            <span>Export Mission CSV</span>
           </button>
         </div>
       </div>
 
       <!-- Matrix Table Scrollable -->
-      <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
+      <div class="bg-[#111827] rounded-2xl border border-slate-800 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full text-xs border-collapse text-left">
+          <table class="w-full text-xs border-collapse text-left font-mono-code">
             <thead>
-              <tr class="bg-slate-950/70 border-b border-slate-800 font-bold text-slate-400">
-                <th class="p-3 sticky left-0 bg-slate-950 z-10 w-44 shadow-sm border-r border-slate-800">Course Name</th>
+              <tr class="bg-slate-950/80 border-b border-slate-800 font-bold text-slate-400">
+                <th class="p-3 sticky left-0 bg-slate-950 z-10 w-44 shadow-sm border-r border-slate-800 text-slate-300">CORE SYSTEM</th>
                 <!-- 18 Weeks Injected via JS -->
                 <script>
                   for(let i = 1; i <= 18; i++) {
                     document.write(`<th class="p-2 text-center min-w-[50px] border-l border-slate-800/80">W${i}</th>`);
                   }
                 </script>
-                <th class="p-3 text-right font-bold text-white border-l border-slate-800 min-w-[70px]">Total</th>
+                <th class="p-3 text-right font-bold text-amber-400 border-l border-slate-800 min-w-[70px]">TOTAL</th>
               </tr>
             </thead>
-            <tbody id="matrix-table-body" class="divide-y divide-slate-800">
+            <tbody id="matrix-table-body" class="divide-y divide-slate-800/80">
               <!-- Injected via JS -->
             </tbody>
             <tfoot>
-              <tr id="matrix-total-row" class="bg-slate-950/70 font-extrabold text-white border-t-2 border-slate-700">
+              <tr id="matrix-total-row" class="bg-slate-950/90 font-extrabold text-white border-t-2 border-slate-700">
                 <!-- Total Row Injected via JS -->
               </tr>
             </tfoot>
@@ -188,95 +218,95 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 3: REPORTS & PORTFOLIO -->
+    <!-- TAB 3: MISSION MANIFEST & PORTFOLIO -->
     <!-- ========================================== -->
     <div id="view-reports" class="hidden space-y-6">
       
-      <div class="flex items-center justify-between bg-slate-900 p-4 rounded-2xl border border-slate-800 no-print">
+      <div class="flex items-center justify-between bg-[#111827] p-4 rounded-2xl border border-slate-800 no-print">
         <div>
-          <h2 class="text-base font-bold text-white">Academic Progress & Carnegie Units</h2>
-          <p class="text-xs text-slate-400">Official semester progress and credit unit tracking for Nora Peak.</p>
+          <h2 class="text-base font-bold text-white font-mono-code">ACADEMIC MANIFEST & AUDIT</h2>
+          <p class="text-xs text-slate-400">Standardized Carnegie transcript report for Nora Peak (District Portfolio Compliant).</p>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="resetToDefaults()" class="text-xs text-slate-400 hover:text-rose-400 font-semibold px-3 py-2 border border-slate-800 rounded-xl hover:bg-rose-950/30 transition">
-            Reset Data
+          <button onclick="resetToDefaults()" class="text-xs font-mono-code text-slate-400 hover:text-rose-400 px-3 py-2 border border-slate-800 rounded-xl hover:bg-rose-950/30 transition">
+            Purge/Reset Data
           </button>
-          <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center space-x-2 transition shadow-sm">
+          <button onclick="window.print()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-mono-code font-bold rounded-xl flex items-center space-x-2 transition shadow-md glow-amber">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Print Portfolio Report</span>
+            <span>Print Compliance Portfolio</span>
           </button>
         </div>
       </div>
 
-      <!-- Printable Report Card -->
-      <div class="printable-card bg-slate-900 rounded-2xl border border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
+      <!-- Printable Report Card (Strips styling on physical print) -->
+      <div class="printable-card bg-[#111827] rounded-2xl border border-slate-800 p-6 sm:p-8 space-y-6 shadow-sm">
         
         <!-- Header Info -->
-        <div class="border-b border-slate-800 pb-4">
+        <div class="border-b border-slate-800 pb-4 printable-border">
           <div class="flex justify-between items-start">
             <div>
-              <h3 class="text-xl font-extrabold text-white printable-text">Academic Daybook Summary</h3>
+              <h3 class="text-xl font-extrabold text-white printable-text">Homeschool Academic Progress & Unit Report</h3>
               <p class="text-xs text-slate-400 mt-0.5 printable-text">Student: <strong class="text-slate-200 printable-text">Nora Peak</strong> | Academic Year: <strong>Grade 9 (2026-2027)</strong></p>
             </div>
             <div class="text-right">
-              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-indigo-950 border border-indigo-800 text-indigo-300">Fall Term</span>
-              <p class="text-[10px] text-slate-500 mt-1 printable-text">Standard: 60h per 0.5 Credit</p>
+              <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono-code printable-text">SEMESTER 1</span>
+              <p class="text-[10px] text-slate-500 mt-1 printable-text">Standard Carnegie Metric: 60h / 0.50 Credit</p>
             </div>
           </div>
         </div>
 
         <!-- Academic Discipline Breakdown -->
         <div>
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 printable-text">Subject Distribution Balance</h4>
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 printable-text font-mono-code">Curriculum Balance Distribution</h4>
           <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden flex" id="balance-bar">
-            <div id="bar-stem" class="bg-indigo-500 h-full transition-all" style="width: 50%" title="STEM"></div>
-            <div id="bar-humanities" class="bg-emerald-500 h-full transition-all" style="width: 50%" title="Humanities"></div>
+            <div id="bar-stem" class="bg-amber-500 h-full transition-all" style="width: 50%" title="STEM Disciplines"></div>
+            <div id="bar-humanities" class="bg-teal-500 h-full transition-all" style="width: 50%" title="Humanities Disciplines"></div>
           </div>
           <div class="flex justify-between items-center text-xs text-slate-400 mt-2 font-medium">
             <div class="flex items-center space-x-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 inline-block"></span>
-              <span class="printable-text">STEM (Geometry + Biology): <strong id="rep-stem-hrs" class="text-slate-200 printable-text">2.0 hrs</strong></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+              <span class="printable-text">STEM (Geometry + Biology): <strong id="rep-stem-hrs" class="text-slate-200 printable-text font-mono-code">2.0 hrs</strong></span>
             </div>
             <div class="flex items-center space-x-1.5">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-              <span class="printable-text">Humanities (English 9, US History, Civics): <strong id="rep-humanities-hrs" class="text-slate-200 printable-text">0.0 hrs</strong></span>
+              <span class="w-2.5 h-2.5 rounded-full bg-teal-500 inline-block"></span>
+              <span class="printable-text">Humanities (English 9, US History, Civics): <strong id="rep-humanities-hrs" class="text-slate-200 printable-text font-mono-code">0.0 hrs</strong></span>
             </div>
           </div>
         </div>
 
         <!-- Core Course Table -->
         <div class="overflow-x-auto">
-          <table class="w-full text-xs text-left border-collapse">
+          <table class="w-full text-xs text-left border-collapse font-mono-code">
             <thead>
-              <tr class="bg-slate-950/60 border-y border-slate-800 text-slate-400 font-bold printable-text">
-                <th class="py-2.5 px-3">Course Title</th>
+              <tr class="bg-slate-950/60 border-y border-slate-800 text-slate-400 font-bold printable-text printable-border">
+                <th class="py-2.5 px-3">Subject Title</th>
                 <th class="py-2.5 px-3">Classification</th>
-                <th class="py-2.5 px-3 text-right">Target Hrs</th>
-                <th class="py-2.5 px-3 text-right">Logged Hrs</th>
-                <th class="py-2.5 px-3 text-right">Progress</th>
-                <th class="py-2.5 px-3 text-right">Semester Credit</th>
+                <th class="py-2.5 px-3 text-right">Floor Req</th>
+                <th class="py-2.5 px-3 text-right">Burned (Logged)</th>
+                <th class="py-2.5 px-3 text-right">Completion</th>
+                <th class="py-2.5 px-3 text-right">Carnegie Credit</th>
               </tr>
             </thead>
-            <tbody id="report-table-body" class="divide-y divide-slate-800/80">
+            <tbody id="report-table-body" class="divide-y divide-slate-800/80 printable-border">
               <!-- Populated via JS -->
             </tbody>
             <tfoot>
-              <tr id="report-table-footer" class="border-t-2 border-slate-700 font-bold text-white bg-slate-950/60 printable-text">
+              <tr id="report-table-footer" class="border-t-2 border-slate-700 font-bold text-white bg-slate-950/60 printable-text printable-border">
                 <!-- Populated via JS -->
               </tr>
             </tfoot>
           </table>
         </div>
 
-        <!-- Compliance Sign-off Area (for printed portfolios) -->
-        <div class="pt-8 border-t border-slate-800 grid grid-cols-2 gap-8 text-xs text-slate-400 printable-text">
+        <!-- Official Sign-off Area -->
+        <div class="pt-8 border-t border-slate-800 grid grid-cols-2 gap-8 text-xs text-slate-400 printable-text printable-border">
           <div>
-            <div class="border-b border-slate-700 pb-1 h-8"></div>
+            <div class="border-b border-slate-700 pb-1 h-8 printable-border"></div>
             <p class="mt-1 font-medium printable-text">Parent / Supervising Educator Signature</p>
           </div>
           <div>
-            <div class="border-b border-slate-700 pb-1 h-8"></div>
-            <p class="mt-1 font-medium printable-text">Date Verified</p>
+            <div class="border-b border-slate-700 pb-1 h-8 printable-border"></div>
+            <p class="mt-1 font-medium printable-text">Date Logged & Verified</p>
           </div>
         </div>
 
@@ -287,15 +317,15 @@
   </main>
 
   <!-- ========================================== -->
-  <!-- JAVASCRIPT APP LOGIC -->
+  <!-- MISSION LOGIC (JS) -->
   <!-- ========================================== -->
   <script>
     const COURSES = [
-      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60 },
-      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60 },
-      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60 },
-      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60 },
-      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60 }
+      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60, icon: '📐' },
+      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60, icon: '📖' },
+      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60, icon: '🔬' },
+      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60, icon: '🏛️' },
+      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60, icon: '⚖️' }
     ];
 
     const DEFAULT_DATA = {
@@ -312,7 +342,7 @@
     let appState = loadState();
 
     function loadState() {
-      const saved = localStorage.getItem('noras_daybook_data');
+      const saved = localStorage.getItem('noras_hailmary_daybook');
       if (saved) {
         try { return JSON.parse(saved); } catch(e) {}
       }
@@ -320,7 +350,7 @@
     }
 
     function saveState() {
-      localStorage.setItem('noras_daybook_data', JSON.stringify(appState));
+      localStorage.setItem('noras_hailmary_daybook', JSON.stringify(appState));
       renderAll();
     }
 
@@ -331,7 +361,7 @@
       toast.classList.remove('translate-y-20', 'opacity-0');
       setTimeout(() => {
         toast.classList.add('translate-y-20', 'opacity-0');
-      }, 1800);
+      }, 1900);
     }
 
     function switchTab(tabId) {
@@ -339,10 +369,10 @@
         document.getElementById(`view-${tab}`).classList.toggle('hidden', tab !== tabId);
         const btn = document.getElementById(`tab-${tab}`);
         if (tab === tabId) {
-          btn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+          btn.classList.add('bg-amber-500', 'text-slate-950', 'font-bold');
           btn.classList.remove('text-slate-400');
         } else {
-          btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+          btn.classList.remove('bg-amber-500', 'text-slate-950', 'font-bold');
           btn.classList.add('text-slate-400');
         }
       });
@@ -354,7 +384,7 @@
       for (let w = 1; w <= 18; w++) {
         const opt = document.createElement('option');
         opt.value = w;
-        opt.innerText = `Week ${w}`;
+        opt.innerText = `Cycle ${w} (Week ${w})`;
         if (w === appState.activeWeek) opt.selected = true;
         sel.appendChild(opt);
       }
@@ -370,14 +400,14 @@
       const next = Math.max(0, Math.round((current + delta) * 10) / 10);
       appState.matrix[courseId][appState.activeWeek] = next;
       saveState();
-      showToast(`Saved ${next} hrs`);
+      showToast(delta > 0 ? `+${delta}h logged! Fist my bump! 🤝` : `Updated to ${next}h`);
     }
 
     function handleCellChange(courseId, week, val) {
       const num = parseFloat(val);
       appState.matrix[courseId][week] = isNaN(num) || num < 0 ? 0 : Math.round(num * 10) / 10;
       saveState();
-      showToast(`Saved Week ${week}`);
+      showToast(`Cycle ${week} telemetry logged`);
     }
 
     function getCourseTotal(courseId) {
@@ -411,7 +441,7 @@
       document.getElementById('stat-total-hrs').innerText = grandTotal.toFixed(1);
       document.getElementById('bar-total-progress').style.width = Math.min(100, (grandTotal / 300) * 100) + '%';
       document.getElementById('stat-current-week-num').innerText = `W${appState.activeWeek}`;
-      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)} hrs in Week ${appState.activeWeek}`;
+      document.getElementById('stat-week-hrs').innerText = `${currentWeekHrs.toFixed(1)}h burned in Cycle ${appState.activeWeek}`;
       
       const creditsEarned = (grandTotal / 60) * 0.5;
       document.getElementById('stat-credits-earned').innerText = creditsEarned.toFixed(2);
@@ -419,17 +449,17 @@
       const targetPace = (300 / 18) * appState.activeWeek;
       const pacingEl = document.getElementById('stat-pacing-status');
       if (grandTotal >= targetPace) {
-        pacingEl.innerText = "Ahead of Pace";
-        pacingEl.className = "text-xl sm:text-2xl font-extrabold text-emerald-400";
+        pacingEl.innerText = "Amaze! Ahead of Pace";
+        pacingEl.className = "text-lg sm:text-xl font-extrabold text-amber-400 font-mono-code";
       } else if (grandTotal >= targetPace * 0.8) {
-        pacingEl.innerText = "On Track";
-        pacingEl.className = "text-xl sm:text-2xl font-extrabold text-indigo-400";
+        pacingEl.innerText = "Good, Good. On Track";
+        pacingEl.className = "text-lg sm:text-xl font-extrabold text-teal-400 font-mono-code";
       } else {
-        pacingEl.innerText = "Behind Pace";
-        pacingEl.className = "text-xl sm:text-2xl font-extrabold text-amber-400";
+        pacingEl.innerText = "More Burn Needed";
+        pacingEl.className = "text-lg sm:text-xl font-extrabold text-rose-400 font-mono-code";
       }
 
-      // Quick Log List
+      // Quick Log Console
       const quickLogEl = document.getElementById('quick-log-list');
       quickLogEl.innerHTML = '';
       COURSES.forEach(c => {
@@ -440,16 +470,17 @@
         div.innerHTML = `
           <div>
             <div class="flex items-center space-x-2">
-              <span class="text-sm font-semibold text-slate-100">${c.name}</span>
-              <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${c.cat === 'STEM' ? 'bg-indigo-950 border border-indigo-800 text-indigo-300' : 'bg-emerald-950 border border-emerald-800 text-emerald-300'}">${c.cat}</span>
+              <span class="text-base">${c.icon}</span>
+              <span class="text-sm font-bold text-slate-100 font-mono-code">${c.name}</span>
+              <span class="text-[10px] uppercase font-mono-code font-bold px-1.5 py-0.5 rounded ${c.cat === 'STEM' ? 'bg-amber-500/10 border border-amber-500/30 text-amber-400' : 'bg-teal-500/10 border border-teal-500/30 text-teal-400'}">${c.cat}</span>
             </div>
-            <p class="text-xs text-slate-400">Total: ${total.toFixed(1)} / ${c.target}h</p>
+            <p class="text-xs text-slate-400 font-mono-code mt-0.5">Reserve: ${total.toFixed(1)} / ${c.target}.0h</p>
           </div>
-          <div class="flex items-center space-x-1.5">
-            <button onclick="adjustHours('${c.id}', -0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold flex items-center justify-center transition">-</button>
-            <span class="w-12 text-center text-sm font-bold text-white">${hrs.toFixed(1)}h</span>
-            <button onclick="adjustHours('${c.id}', 0.5)" class="w-8 h-8 rounded-lg bg-indigo-950 hover:bg-indigo-900 border border-indigo-800 text-indigo-300 font-bold flex items-center justify-center transition">+0.5</button>
-            <button onclick="adjustHours('${c.id}', 1.0)" class="w-8 h-8 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center transition shadow-sm">+1h</button>
+          <div class="flex items-center space-x-1.5 font-mono-code">
+            <button onclick="adjustHours('${c.id}', -0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold flex items-center justify-center transition">-</button>
+            <span class="w-12 text-center text-sm font-bold text-amber-400">${hrs.toFixed(1)}h</span>
+            <button onclick="adjustHours('${c.id}', 0.5)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-amber-500/20 border border-slate-700 hover:border-amber-500/40 text-amber-300 font-bold flex items-center justify-center transition">+0.5</button>
+            <button onclick="adjustHours('${c.id}', 1.0)" class="w-8 h-8 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs flex items-center justify-center transition shadow-sm">+1h</button>
           </div>
         `;
         quickLogEl.appendChild(div);
@@ -461,33 +492,33 @@
       COURSES.forEach(c => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-800/40 transition";
-        let cells = `<td class="p-3 font-semibold text-slate-200 sticky left-0 bg-slate-900 shadow-sm border-r border-slate-800">${c.name}</td>`;
+        let cells = `<td class="p-3 font-semibold text-slate-200 sticky left-0 bg-[#111827] shadow-sm border-r border-slate-800"><span class="mr-1.5">${c.icon}</span>${c.name}</td>`;
         for (let w = 1; w <= 18; w++) {
           const val = appState.matrix[c.id][w] || 0;
           const isCurrent = (w === appState.activeWeek);
           cells += `
-            <td class="p-1 border-l border-slate-800/80 text-center ${isCurrent ? 'bg-indigo-950/40' : ''}">
+            <td class="p-1 border-l border-slate-800/80 text-center ${isCurrent ? 'bg-amber-500/10' : ''}">
               <input type="number" step="0.5" min="0" value="${val === 0 ? '' : val}" placeholder="-" 
                 onchange="handleCellChange('${c.id}', ${w}, this.value)"
-                class="w-full text-center py-1 bg-transparent rounded hover:bg-slate-800 focus:bg-slate-800 focus:ring-1 focus:ring-indigo-500 font-medium text-slate-200 outline-none">
+                class="w-full text-center py-1 bg-transparent rounded hover:bg-slate-800 focus:bg-slate-800 focus:ring-1 focus:ring-amber-500 font-medium text-slate-200 outline-none">
             </td>
           `;
         }
-        cells += `<td class="p-3 font-bold text-right text-white border-l border-slate-800">${getCourseTotal(c.id).toFixed(1)}</td>`;
+        cells += `<td class="p-3 font-bold text-right text-amber-400 border-l border-slate-800">${getCourseTotal(c.id).toFixed(1)}</td>`;
         tr.innerHTML = cells;
         matrixTbody.appendChild(tr);
       });
 
       const totalRow = document.getElementById('matrix-total-row');
-      let totalCells = `<td class="p-3 sticky left-0 bg-slate-950 border-r border-slate-800">Total Hours</td>`;
+      let totalCells = `<td class="p-3 sticky left-0 bg-slate-950 border-r border-slate-800 text-amber-400">MISSION BURN TOTAL</td>`;
       for (let w = 1; w <= 18; w++) {
         const wTot = getWeekTotal(w);
-        totalCells += `<td class="p-2 text-center border-l border-slate-800/80 font-bold ${w === appState.activeWeek ? 'text-indigo-400' : 'text-slate-300'}">${wTot > 0 ? wTot.toFixed(1) : '-'}</td>`;
+        totalCells += `<td class="p-2 text-center border-l border-slate-800/80 font-bold ${w === appState.activeWeek ? 'text-amber-400' : 'text-slate-300'}">${wTot > 0 ? wTot.toFixed(1) : '-'}</td>`;
       }
-      totalCells += `<td class="p-3 text-right font-extrabold text-indigo-400 border-l border-slate-800">${grandTotal.toFixed(1)}</td>`;
+      totalCells += `<td class="p-3 text-right font-extrabold text-amber-400 border-l border-slate-800">${grandTotal.toFixed(1)}</td>`;
       totalRow.innerHTML = totalCells;
 
-      // Reports Tab
+      // Reports & Balance
       let stemHrs = 0;
       let humanitiesHrs = 0;
       COURSES.forEach(c => {
@@ -514,21 +545,21 @@
         tr.innerHTML = `
           <td class="py-2.5 px-3 font-semibold text-slate-200 printable-text">${c.name}</td>
           <td class="py-2.5 px-3 text-slate-400 printable-text">${c.cat}</td>
-          <td class="py-2.5 px-3 text-right text-slate-400 printable-text">${c.target}h</td>
-          <td class="py-2.5 px-3 text-right font-bold text-white printable-text">${tot.toFixed(1)}h</td>
+          <td class="py-2.5 px-3 text-right text-slate-400 printable-text">${c.target}.0h</td>
+          <td class="py-2.5 px-3 text-right font-bold text-amber-400 printable-text">${tot.toFixed(1)}h</td>
           <td class="py-2.5 px-3 text-right text-slate-300 font-medium printable-text">${pct}%</td>
-          <td class="py-2.5 px-3 text-right font-bold text-indigo-400 printable-text">${credit} / 0.50</td>
+          <td class="py-2.5 px-3 text-right font-bold text-teal-400 printable-text">${credit} / 0.50</td>
         `;
         repTbody.appendChild(tr);
       });
 
       const repFooter = document.getElementById('report-table-footer');
       repFooter.innerHTML = `
-        <td class="py-3 px-3 printable-text" colspan="2">Total Academic Core</td>
-        <td class="py-3 px-3 text-right printable-text">300h</td>
-        <td class="py-3 px-3 text-right text-indigo-400 printable-text">${grandTotal.toFixed(1)}h</td>
+        <td class="py-3 px-3 printable-text" colspan="2">TOTAL ACADEMIC CORE UNITS</td>
+        <td class="py-3 px-3 text-right printable-text">300.0h</td>
+        <td class="py-3 px-3 text-right text-amber-400 printable-text">${grandTotal.toFixed(1)}h</td>
         <td class="py-3 px-3 text-right printable-text">${Math.round((grandTotal / 300) * 100)}%</td>
-        <td class="py-3 px-3 text-right text-indigo-400 printable-text">${creditsEarned.toFixed(2)} / 2.50</td>
+        <td class="py-3 px-3 text-right text-teal-400 printable-text">${creditsEarned.toFixed(2)} / 2.50</td>
       `;
     }
 
@@ -545,12 +576,12 @@
       });
 
       navigator.clipboard.writeText(tsv).then(() => {
-        showToast("Copied! Ready to paste into Google Sheets.");
+        showToast("Copied to clipboard! Ready to paste into Sheets.");
       });
     }
 
     function downloadCSV() {
-      let csv = "Course," + Array.from({length: 18}, (_, i) => `Week ${i+1}`).join(",") + ",Total\n";
+      let csv = "Course," + Array.from({length: 18}, (_, i) => `Cycle ${i+1}`).join(",") + ",Total\n";
       COURSES.forEach(c => {
         const row = [`"${c.name}"`];
         for (let w = 1; w <= 18; w++) {
@@ -564,16 +595,16 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Nora_Homeschool_Log_W${appState.activeWeek}.csv`;
+      a.download = `Nora_HailMary_MissionLog_W${appState.activeWeek}.csv`;
       a.click();
       URL.revokeObjectURL(url);
     }
 
     function resetToDefaults() {
-      if (confirm("Reset all logged hours back to default?")) {
+      if (confirm("Reset mission logs back to Week 2 default?")) {
         appState = JSON.parse(JSON.stringify(DEFAULT_DATA));
         saveState();
-        showToast("Reset to default hours");
+        showToast("Telemetry restored to baseline");
       }
     }
 
@@ -582,3 +613,5 @@
   </script>
 </body>
 </html>
+
+```
