@@ -1,3 +1,59 @@
+The current week didn't advance automatically because `currentWeek` was initialized to a static number rather than being calculated from the calendar or persisted in local storage.
+
+In the script, look at line 37:
+
+```javascript
+const [currentWeek, setCurrentWeek] = useState(4); // or useState(2);
+
+```
+
+Because it was hardcoded, it never advances on its own as the calendar moves, and any manual selection in the dropdown resets back to that initial number on reload.
+
+---
+
+### The Fix
+
+You can automate this based on your term's real start date so it advances every Sunday/Monday automatically, while still letting you manually switch weeks if you want to look back.
+
+Based on your spreadsheet headers (`Week 2 (9/13-9/18)` and `Week 3 (9/21-9/26)`), **Week 1 began Sunday, September 6, 2026**.
+
+Replace the `currentWeek` state declaration in `index.html`:
+
+```javascript
+// Calculate current academic week based on Term Start Date (Sept 6, 2026)
+const getAutoWeek = () => {
+  const saved = localStorage.getItem('nora_current_week');
+  if (saved) return Number(saved);
+
+  const termStart = new Date(2026, 8, 6); // Sept 6, 2026
+  const now = new Date();
+  const diffDays = Math.floor((now - termStart) / (1000 * 60 * 60 * 24));
+  const week = Math.floor(diffDays / 7) + 1;
+  return Math.min(Math.max(week, 1), 18);
+};
+
+const [currentWeek, setCurrentWeek] = useState(getAutoWeek);
+
+```
+
+And update the dropdown `onChange` handler so whenever you manually change the week, it saves your choice:
+
+```javascript
+onChange={(e) => {
+  const w = Number(e.target.value);
+  setCurrentWeek(w);
+  localStorage.setItem('nora_current_week', w);
+}}
+
+```
+
+---
+
+### Full Updated `index.html`
+
+In GitHub, edit `index.html`, replace all code with this version, and commit:
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -28,10 +84,21 @@
       { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60 }
     ];
 
+    const getAutoWeek = () => {
+      const saved = localStorage.getItem('nora_current_week');
+      if (saved) return Number(saved);
+
+      const termStart = new Date(2026, 8, 6); // Sept 6, 2026
+      const now = new Date();
+      const diffDays = Math.floor((now - termStart) / (1000 * 60 * 60 * 24));
+      const week = Math.floor(diffDays / 7) + 1;
+      return Math.min(Math.max(week, 1), 18);
+    };
+
     function App() {
       const [viewMode, setViewMode] = useState(() => localStorage.getItem('tracker_view_mode') || 'phm');
       const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem('nora_webhook_url') || '');
-      const [currentWeek, setCurrentWeek] = useState(4);
+      const [currentWeek, setCurrentWeek] = useState(getAutoWeek);
       const [activeTab, setActiveTab] = useState('deck');
       const [matrix, setMatrix] = useState(() => {
         const saved = localStorage.getItem('nora_hours_matrix');
@@ -66,7 +133,6 @@
       const currentWeekTotal = COURSES.reduce((acc, c) => acc + (parseFloat(matrix[c.id]?.[currentWeek]) || 0), 0);
       const creditsEarned = (grandTotal / 60) * 0.5;
 
-      // Pacing calculation: 7.5 hrs/week target
       const targetPace = currentWeek * 7.5;
       const isAhead = grandTotal >= targetPace;
       const isClose = grandTotal >= targetPace * 0.8;
@@ -122,6 +188,11 @@
         };
         setMatrix(updated);
         pushToSheet(updated);
+      };
+
+      const handleWeekChange = (w) => {
+        setCurrentWeek(w);
+        localStorage.setItem('nora_current_week', w);
       };
 
       const isPHM = viewMode === 'phm';
@@ -257,7 +328,7 @@
                 </div>
                 <select
                   value={currentWeek}
-                  onChange={(e) => setCurrentWeek(Number(e.target.value))}
+                  onChange={(e) => handleWeekChange(Number(e.target.value))}
                   className="bg-slate-950 border border-slate-700 text-amber-400 text-xs font-bold rounded-lg px-3 py-1.5"
                 >
                   {Array.from({ length: 18 }, (_, i) => i + 1).map(w => (
@@ -381,3 +452,5 @@
   </script>
 </body>
 </html>
+
+```
