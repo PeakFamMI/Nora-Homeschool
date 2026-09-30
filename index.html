@@ -29,10 +29,9 @@
     ];
 
     function App() {
-      // Toggle between 'phm' and 'standard'
       const [viewMode, setViewMode] = useState(() => localStorage.getItem('tracker_view_mode') || 'phm');
       const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem('nora_webhook_url') || '');
-      const [currentWeek, setCurrentWeek] = useState(2);
+      const [currentWeek, setCurrentWeek] = useState(4);
       const [activeTab, setActiveTab] = useState('deck');
       const [matrix, setMatrix] = useState(() => {
         const saved = localStorage.getItem('nora_hours_matrix');
@@ -40,11 +39,11 @@
           try { return JSON.parse(saved); } catch (e) {}
         }
         return {
-          geometry: { 2: 2.7 },
-          english9: { 2: 1.2 },
-          biology: { 2: 3.8 },
-          ushistory: { 2: 0.8 },
-          civics: { 2: 0.0 }
+          geometry: {},
+          english9: {},
+          biology: {},
+          ushistory: {},
+          civics: {}
         };
       });
       const [isSyncing, setIsSyncing] = useState(false);
@@ -58,7 +57,6 @@
         localStorage.setItem('nora_hours_matrix', JSON.stringify(matrix));
       }, [matrix]);
 
-      // Calculate Course Totals
       const getCourseTotal = (courseId) => {
         const record = matrix[courseId] || {};
         return Object.values(record).reduce((a, b) => a + (parseFloat(b) || 0), 0);
@@ -67,6 +65,11 @@
       const grandTotal = COURSES.reduce((acc, c) => acc + getCourseTotal(c.id), 0);
       const currentWeekTotal = COURSES.reduce((acc, c) => acc + (parseFloat(matrix[c.id]?.[currentWeek]) || 0), 0);
       const creditsEarned = (grandTotal / 60) * 0.5;
+
+      // Pacing calculation: 7.5 hrs/week target
+      const targetPace = currentWeek * 7.5;
+      const isAhead = grandTotal >= targetPace;
+      const isClose = grandTotal >= targetPace * 0.8;
 
       const pullFromSheet = async () => {
         if (!webhookUrl) return;
@@ -140,17 +143,14 @@
                 )}
               </div>
               <p className="text-slate-400 text-xs mt-1">
-                {isPHM ? 'Grade 9 Core Academic Telemetry' : 'Official Academic Time Log (300 Hour Floor)'}
+                {isPHM ? 'Grade 9 Core Academic Telemetry' : 'Official Academic Time Log (Target: 7.5 hrs/wk)'}
               </p>
             </div>
 
-            {/* View Switcher & Navigation */}
             <div className="flex flex-wrap items-center gap-2">
-              {/* Dual Mode Toggle */}
               <button 
                 onClick={() => setViewMode(isPHM ? 'standard' : 'phm')}
                 className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium px-3 py-1.5 rounded-md flex items-center gap-1.5 transition"
-                title="Switch between Teen / Parent view"
               >
                 <span>👓</span>
                 <span>{isPHM ? 'View: Standard English' : 'View: Hail Mary Mode'}</span>
@@ -179,7 +179,7 @@
             </div>
           </div>
 
-          {/* Top Status Bar */}
+          {/* Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -209,11 +209,13 @@
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
                 {isPHM ? 'Trajectory' : 'Pacing Status'}
               </div>
-              <div className="text-lg font-bold text-rose-400">
-                {isPHM ? 'More Burn Needed' : 'Behind Target Pace'}
+              <div className={`text-lg font-bold ${isAhead ? 'text-emerald-400' : isClose ? 'text-amber-400' : 'text-rose-400'}`}>
+                {isPHM 
+                  ? (isAhead ? 'Amaze! On Track' : isClose ? 'Good. On Track' : 'More Burn Needed')
+                  : (isAhead ? 'On Target Pace' : isClose ? 'Near Target Pace' : 'Behind Target Pace')}
               </div>
-             <div class="text-xs text-slate-400 mt-1">Floor: 7.5 hrs/week (1.5h / class)
-             </div>
+              <div className="text-xs text-slate-400 mt-1">Floor: 7.5 hrs/week (1.5h / class)</div>
+            </div>
 
             <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -241,7 +243,7 @@
             </button>
           </div>
 
-          {/* TAB 1: QUICK LOG / FLIGHT DECK */}
+          {/* TAB 1: QUICK LOG */}
           {activeTab === 'deck' && (
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
@@ -250,7 +252,7 @@
                     {isPHM ? 'Propulsion Logging Console' : 'Weekly Course Hour Entry'}
                   </h2>
                   <p className="text-xs text-slate-400">
-                    {isPHM ? 'Logged hours automatically sync to your Google Sheet in the background.' : 'Adjust hours for this week. Updates push directly to your Google Sheet.'}
+                    {isPHM ? 'Logged hours automatically sync to your Google Sheet.' : 'Adjust hours for this week. Updates push directly to your Google Sheet.'}
                   </p>
                 </div>
                 <select
@@ -306,7 +308,7 @@
             </div>
           )}
 
-          {/* TAB 2: SEMESTER MATRIX */}
+          {/* TAB 2: MATRIX */}
           {activeTab === 'grid' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 overflow-x-auto">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200 mb-3">
