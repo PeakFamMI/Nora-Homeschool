@@ -1,8 +1,27 @@
-<script type="text/babel">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nora - Homeschool Academic Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .font-phm { font-family: 'Space Grotesk', monospace, sans-serif; }
+    .font-parent { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // Paste your deployed Google Web App URL here so all devices auto-connect
-    const DEFAULT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwYOUR_FULL_URL_HERE/exec";
+    // Baked-in Google Apps Script Web App URL
+    const DEFAULT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxyFX10EB-RBurqZqfFeVtD5xS1zwcGH3nyZf9riV0ccJqEIjCx0tM-AT0j2uc8Yfp7/exec";
 
     const COURSES = [
       { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60, icon: '📐' },
@@ -77,7 +96,7 @@
         };
       });
       const [isSyncing, setIsSyncing] = useState(false);
-      const [syncStatus, setSyncStatus] = useState('Ready');
+      const [syncStatus, setSyncStatus] = useState('Checking Sheet...');
 
       useEffect(() => {
         localStorage.setItem('tracker_view_mode', viewMode);
@@ -112,7 +131,7 @@
       const isClose = grandTotal >= targetPace * 0.8;
       const weeklyOverdrive = Math.max(0, Math.round((currentWeekTotal - 7.5) * 100) / 100);
 
-      // JSONP Pull: Guaranteed to work on mobile browsers without CORS blocks
+      // JSONP Pull avoids mobile CORS redirects
       const pullFromSheet = () => {
         if (!webhookUrl || !webhookUrl.includes('script.google.com')) {
           setSyncStatus('Sheet not configured');
@@ -125,13 +144,13 @@
         const callbackName = 'googleSheetCallback_' + Math.round(100000 * Math.random());
         window[callbackName] = function(data) {
           delete window[callbackName];
-          document.body.removeChild(script);
+          if (script.parentNode) document.body.removeChild(script);
           setIsSyncing(false);
 
           if (data && data.status === 'ok' && data.matrix) {
             setMatrix(data.matrix);
             setSyncStatus('Synced with Sheet');
-            triggerToast('Telemetry loaded from Sheet!', '⚡');
+            triggerToast('Data loaded from Sheet!', '⚡');
           } else {
             setSyncStatus('Sync warning');
           }
@@ -206,6 +225,7 @@
       return (
         <div className={`p-4 md:p-8 max-w-5xl mx-auto ${isPHM ? 'font-phm' : 'font-parent'}`}>
           
+          {/* Toast Notification */}
           <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}`}>
             <div className="bg-slate-900 border-2 border-amber-500/80 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
               <span className="text-xl">{toast.icon}</span>
@@ -213,6 +233,7 @@
             </div>
           </div>
 
+          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
             <div>
               <div className="flex items-center gap-3">
@@ -263,6 +284,7 @@
             </div>
           </div>
 
+          {/* Status Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -327,6 +349,7 @@
             </div>
           </div>
 
+          {/* Sync Status Banner */}
           <div className="flex items-center justify-between text-xs px-3 py-1.5 bg-slate-900/40 border border-slate-800 rounded-lg mb-6">
             <span className="flex items-center gap-2">
               <span className={`inline-block w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`}></span>
@@ -341,6 +364,7 @@
             </button>
           </div>
 
+          {/* TAB 1: QUICK LOG */}
           {activeTab === 'deck' && (
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
@@ -470,6 +494,7 @@
             </div>
           )}
 
+          {/* TAB 2: SEMESTER MATRIX */}
           {activeTab === 'grid' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 overflow-x-auto">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200 mb-3">
@@ -513,6 +538,7 @@
             </div>
           )}
 
+          {/* TAB 3: CONFIG */}
           {activeTab === 'config' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-4">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200">
@@ -525,7 +551,7 @@
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
                   placeholder="https://script.google.com/macros/s/.../exec"
-                  className="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 p-2.5 rounded-lg focus:outline-none focus:border-amber-500"
+                  className="w-full bg-slate-950 border border-slate-700 text-xs text-slate-200 p-2.5 rounded-lg focus:outline-none focus:border-amber-500 font-mono"
                 />
               </div>
               <button
