@@ -31,7 +31,7 @@
     const getAutoWeek = () => {
       const saved = localStorage.getItem('nora_current_week');
       if (saved) return Number(saved);
-      const termStart = new Date(2026, 8, 6); // Sept 6, 2026
+      const termStart = new Date(2026, 8, 6);
       const now = new Date();
       const diffDays = Math.floor((now - termStart) / (1000 * 60 * 60 * 24));
       const week = Math.floor(diffDays / 7) + 1;
@@ -57,7 +57,7 @@
         };
       });
       const [isSyncing, setIsSyncing] = useState(false);
-      const [syncStatus, setSyncStatus] = useState('Ready');
+      const [syncStatus, setSyncStatus] = useState('Synced with Sheet');
 
       useEffect(() => {
         localStorage.setItem('tracker_view_mode', viewMode);
@@ -67,6 +67,7 @@
         localStorage.setItem('nora_hours_matrix', JSON.stringify(matrix));
       }, [matrix]);
 
+      // Initial load only: pull data once if webhook exists
       useEffect(() => {
         if (webhookUrl) {
           pullFromSheet();
@@ -108,13 +109,12 @@
 
       const saveCellToSheet = async (courseId, week, hours) => {
         if (!webhookUrl) return;
-        setIsSyncing(true);
         setSyncStatus('Saving to sheet...');
         try {
           await fetch(webhookUrl, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({
               action: 'update_cell',
               courseId: courseId,
@@ -122,39 +122,35 @@
               hours: hours
             })
           });
-          setSyncStatus('Synced with Sheet');
+          setSyncStatus('Saved to Sheet');
         } catch (err) {
           setSyncStatus('Saved locally (Offline)');
-        } finally {
-          setIsSyncing(false);
         }
       };
 
       const setSpecificHours = (courseId, value) => {
         const num = parseFloat(value);
         const nextVal = isNaN(num) || num < 0 ? 0 : Math.round(num * 100) / 100;
-        const updated = {
-          ...matrix,
+        setMatrix(prev => ({
+          ...prev,
           [courseId]: {
-            ...(matrix[courseId] || {}),
+            ...(prev[courseId] || {}),
             [currentWeek]: nextVal
           }
-        };
-        setMatrix(updated);
+        }));
         saveCellToSheet(courseId, currentWeek, nextVal);
       };
 
       const addIncrement = (courseId, delta) => {
         const currentVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
         const nextVal = Math.max(0, Math.round((currentVal + delta) * 100) / 100);
-        const updated = {
-          ...matrix,
+        setMatrix(prev => ({
+          ...prev,
           [courseId]: {
-            ...(matrix[courseId] || {}),
+            ...(prev[courseId] || {}),
             [currentWeek]: nextVal
           }
-        };
-        setMatrix(updated);
+        }));
         saveCellToSheet(courseId, currentWeek, nextVal);
       };
 
@@ -162,7 +158,6 @@
 
       return (
         <div className={`p-4 md:p-8 max-w-5xl mx-auto ${isPHM ? 'font-phm' : 'font-parent'}`}>
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
             <div>
               <div className="flex items-center gap-3">
@@ -213,7 +208,6 @@
             </div>
           </div>
 
-          {/* Top Status Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -262,10 +256,9 @@
             </div>
           </div>
 
-          {/* Sync Status Banner */}
           <div className="flex items-center justify-between text-xs px-3 py-1.5 bg-slate-900/40 border border-slate-800 rounded-lg mb-6">
             <span className="flex items-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
               <span className="text-slate-300">{syncStatus}</span>
             </span>
             <button 
@@ -277,7 +270,6 @@
             </button>
           </div>
 
-          {/* TAB 1: QUICK LOG WITH 15-MIN INCREMENTS */}
           {activeTab === 'deck' && (
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
@@ -286,7 +278,7 @@
                     {isPHM ? 'Propulsion Logging Console' : 'Weekly Course Hour Entry'}
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Tap to add time or type exact hours. Only this subject and week will update on your sheet.
+                    Tap to add time or type exact hours.
                   </p>
                 </div>
                 <select
@@ -369,7 +361,6 @@
             </div>
           )}
 
-          {/* TAB 2: SEMESTER MATRIX */}
           {activeTab === 'grid' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 overflow-x-auto">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200 mb-3">
@@ -407,7 +398,6 @@
             </div>
           )}
 
-          {/* TAB 3: CONFIG */}
           {activeTab === 'config' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-4">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200">
