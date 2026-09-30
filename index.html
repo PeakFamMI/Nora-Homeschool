@@ -1,24 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nora - Homeschool Tracker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    .font-phm { font-family: 'Space Grotesk', monospace, sans-serif; }
-    .font-parent { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-  </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <div id="root"></div>
-
-  <script type="text/babel">
+<script type="text/babel">
     const { useState, useEffect } = React;
+
+    // Paste your deployed Google Web App URL here so all devices auto-connect
+    const DEFAULT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwYOUR_FULL_URL_HERE/exec";
 
     const COURSES = [
       { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60, icon: '📐' },
@@ -73,7 +57,9 @@
 
     function App() {
       const [viewMode, setViewMode] = useState(() => localStorage.getItem('tracker_view_mode') || 'phm');
-      const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem('nora_webhook_url') || '');
+      const [webhookUrl, setWebhookUrl] = useState(() => {
+        return localStorage.getItem('nora_webhook_url') || DEFAULT_WEBHOOK_URL;
+      });
       const [currentWeek, setCurrentWeek] = useState(getAutoWeek);
       const [activeTab, setActiveTab] = useState('deck');
       const [toast, setToast] = useState({ show: false, msg: '', icon: '🤝' });
@@ -102,8 +88,10 @@
       }, [matrix]);
 
       useEffect(() => {
-        if (webhookUrl) pullFromSheet();
-      }, []);
+        if (webhookUrl && webhookUrl.includes('script.google.com')) {
+          pullFromSheet();
+        }
+      }, [webhookUrl]);
 
       const triggerToast = (msg, icon = '🤝') => {
         setToast({ show: true, msg, icon });
@@ -124,26 +112,44 @@
       const isClose = grandTotal >= targetPace * 0.8;
       const weeklyOverdrive = Math.max(0, Math.round((currentWeekTotal - 7.5) * 100) / 100);
 
-      const pullFromSheet = async () => {
-        if (!webhookUrl) return;
+      // JSONP Pull: Guaranteed to work on mobile browsers without CORS blocks
+      const pullFromSheet = () => {
+        if (!webhookUrl || !webhookUrl.includes('script.google.com')) {
+          setSyncStatus('Sheet not configured');
+          return;
+        }
+
         setIsSyncing(true);
         setSyncStatus('Reading sheet...');
-        try {
-          const res = await fetch(`${webhookUrl}?t=${Date.now()}`);
-          const json = await res.json();
-          if (json.status === 'ok' && json.matrix) {
-            setMatrix(json.matrix);
-            setSyncStatus('Synced with Sheet');
-          }
-        } catch (err) {
-          setSyncStatus('Offline / Cached');
-        } finally {
+
+        const callbackName = 'googleSheetCallback_' + Math.round(100000 * Math.random());
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          document.body.removeChild(script);
           setIsSyncing(false);
-        }
+
+          if (data && data.status === 'ok' && data.matrix) {
+            setMatrix(data.matrix);
+            setSyncStatus('Synced with Sheet');
+            triggerToast('Telemetry loaded from Sheet!', '⚡');
+          } else {
+            setSyncStatus('Sync warning');
+          }
+        };
+
+        const script = document.createElement('script');
+        script.src = `${webhookUrl}?callback=${callbackName}&t=${Date.now()}`;
+        script.onerror = function() {
+          delete window[callbackName];
+          if (script.parentNode) document.body.removeChild(script);
+          setIsSyncing(false);
+          setSyncStatus('Offline / Cached');
+        };
+        document.body.appendChild(script);
       };
 
       const saveCellToSheet = async (courseId, week, hours) => {
-        if (!webhookUrl) return;
+        if (!webhookUrl || !webhookUrl.includes('script.google.com')) return;
         setSyncStatus('Saving to sheet...');
         try {
           await fetch(webhookUrl, {
@@ -323,7 +329,7 @@
 
           <div className="flex items-center justify-between text-xs px-3 py-1.5 bg-slate-900/40 border border-slate-800 rounded-lg mb-6">
             <span className="flex items-center gap-2">
-              <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span className={`inline-block w-2 h-2 rounded-full ${isSyncing ? 'bg-amber-400 animate-ping' : 'bg-emerald-400'}`}></span>
               <span className="text-slate-300">{syncStatus}</span>
             </span>
             <button 
@@ -331,7 +337,7 @@
               disabled={isSyncing}
               className="text-amber-400 hover:text-amber-300 font-medium disabled:opacity-50"
             >
-              {isSyncing ? 'Syncing...' : '↻ Refresh from Google Sheet'}
+              {isSyncing ? 'Connecting...' : '↻ Refresh from Google Sheet'}
             </button>
           </div>
 
