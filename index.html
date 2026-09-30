@@ -1,32 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nora - Homeschool Tracker</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    .font-phm { font-family: 'Space Grotesk', monospace, sans-serif; }
-    .font-parent { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-  </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen">
-  <div id="root"></div>
-
-  <script type="text/babel">
+<script type="text/babel">
     const { useState, useEffect } = React;
 
     const COURSES = [
-      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60 },
-      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60 },
-      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60 },
-      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60 },
-      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60 }
+      { id: 'geometry', name: 'Geometry', cat: 'STEM', target: 60, icon: '📐' },
+      { id: 'english9', name: 'English 9', cat: 'Humanities', target: 60, icon: '📖' },
+      { id: 'biology', name: 'Biology (with Lab)', cat: 'STEM', target: 60, icon: '🔬' },
+      { id: 'ushistory', name: 'US History', cat: 'Humanities', target: 60, icon: '🏛️' },
+      { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60, icon: '⚖️' }
     ];
+
+    // Web Audio Synthesizer for instant micro-rewards (zero external MP3 files needed)
+    const playChime = (type = 'click') => {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'click') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(520, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.08);
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.08);
+        } else if (type === 'milestone') {
+          // Rocky celebration chime
+          const now = ctx.currentTime;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.setValueAtTime(739.99, now + 0.1); // F#5
+          osc.frequency.setValueAtTime(880.00, now + 0.2); // A5
+          osc.frequency.setValueAtTime(1174.66, now + 0.3); // D6
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+          osc.start();
+          osc.stop(now + 0.5);
+        }
+      } catch (e) {
+        // AudioContext muted/unsupported
+      }
+    };
 
     const getAutoWeek = () => {
       const saved = localStorage.getItem('nora_current_week');
@@ -43,6 +59,7 @@
       const [webhookUrl, setWebhookUrl] = useState(() => localStorage.getItem('nora_webhook_url') || '');
       const [currentWeek, setCurrentWeek] = useState(getAutoWeek);
       const [activeTab, setActiveTab] = useState('deck');
+      const [toast, setToast] = useState({ show: false, msg: '', icon: '🤝' });
       const [matrix, setMatrix] = useState(() => {
         const saved = localStorage.getItem('nora_hours_matrix');
         if (saved) {
@@ -67,12 +84,14 @@
         localStorage.setItem('nora_hours_matrix', JSON.stringify(matrix));
       }, [matrix]);
 
-      // Initial load only: pull data once if webhook exists
       useEffect(() => {
-        if (webhookUrl) {
-          pullFromSheet();
-        }
+        if (webhookUrl) pullFromSheet();
       }, []);
+
+      const triggerToast = (msg, icon = '🤝') => {
+        setToast({ show: true, msg, icon });
+        setTimeout(() => setToast({ show: false, msg: '', icon: '🤝' }), 2500);
+      };
 
       const getCourseTotal = (courseId) => {
         const record = matrix[courseId] || {};
@@ -87,6 +106,9 @@
       const isAhead = grandTotal >= targetPace;
       const isClose = grandTotal >= targetPace * 0.8;
 
+      // Overdrive calculations
+      const weeklyOverdrive = Math.max(0, Math.round((currentWeekTotal - 7.5) * 100) / 100);
+
       const pullFromSheet = async () => {
         if (!webhookUrl) return;
         setIsSyncing(true);
@@ -97,8 +119,6 @@
           if (json.status === 'ok' && json.matrix) {
             setMatrix(json.matrix);
             setSyncStatus('Synced with Sheet');
-          } else {
-            setSyncStatus('Sync warning');
           }
         } catch (err) {
           setSyncStatus('Offline / Cached');
@@ -117,9 +137,9 @@
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({
               action: 'update_cell',
-              courseId: courseId,
-              week: week,
-              hours: hours
+              courseId,
+              week,
+              hours
             })
           });
           setSyncStatus('Saved to Sheet');
@@ -131,6 +151,27 @@
       const setSpecificHours = (courseId, value) => {
         const num = parseFloat(value);
         const nextVal = isNaN(num) || num < 0 ? 0 : Math.round(num * 100) / 100;
+        updateAndCheckMilestone(courseId, nextVal);
+      };
+
+      const addIncrement = (courseId, delta) => {
+        playChime('click');
+        const currentVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
+        const nextVal = Math.max(0, Math.round((currentVal + delta) * 100) / 100);
+        updateAndCheckMilestone(courseId, nextVal);
+      };
+
+      const updateAndCheckMilestone = (courseId, nextVal) => {
+        const prevVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
+        
+        // Gamified toast triggers
+        if (prevVal < 1.5 && nextVal >= 1.5) {
+          playChime('milestone');
+          triggerToast('Goal Met! (1.5h) Entered Overdrive Burn! 🚀', '⚡');
+        } else if (nextVal > 1.5 && deltaWasPositive(prevVal, nextVal)) {
+          triggerToast(`+${Math.round((nextVal - 1.5)*100)/100}h Bonus Astrophage banked! Fist my bump! 🤝`, '✨');
+        }
+
         setMatrix(prev => ({
           ...prev,
           [courseId]: {
@@ -141,23 +182,22 @@
         saveCellToSheet(courseId, currentWeek, nextVal);
       };
 
-      const addIncrement = (courseId, delta) => {
-        const currentVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
-        const nextVal = Math.max(0, Math.round((currentVal + delta) * 100) / 100);
-        setMatrix(prev => ({
-          ...prev,
-          [courseId]: {
-            ...(prev[courseId] || {}),
-            [currentWeek]: nextVal
-          }
-        }));
-        saveCellToSheet(courseId, currentWeek, nextVal);
-      };
+      const deltaWasPositive = (prev, curr) => curr > prev;
 
       const isPHM = viewMode === 'phm';
 
       return (
         <div className={`p-4 md:p-8 max-w-5xl mx-auto ${isPHM ? 'font-phm' : 'font-parent'}`}>
+          
+          {/* Toast Notification */}
+          <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}`}>
+            <div className="bg-slate-900 border-2 border-amber-500/80 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+              <span className="text-xl">{toast.icon}</span>
+              <span className="text-xs md:text-sm font-bold font-mono text-amber-300">{toast.msg}</span>
+            </div>
+          </div>
+
+          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
             <div>
               <div className="flex items-center gap-3">
@@ -208,6 +248,7 @@
             </div>
           </div>
 
+          {/* Top Status Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -221,15 +262,32 @@
               </div>
             </div>
 
-            <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
-              <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                {isPHM ? 'Mission Phase' : 'Current Week'}
+            {/* Overdrive Week Indicator */}
+            <div className={`p-4 rounded-xl border transition-all ${
+              weeklyOverdrive > 0 
+                ? 'bg-gradient-to-br from-indigo-950/60 to-purple-950/60 border-purple-500/50 shadow-lg shadow-purple-950/30' 
+                : currentWeekTotal >= 7.5 
+                ? 'bg-slate-900/80 border-emerald-500/40' 
+                : 'bg-slate-900/80 border-slate-800/80'
+            }`}>
+              <div className="flex justify-between items-start">
+                <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                  {isPHM ? 'Mission Phase' : 'Current Week'}
+                </div>
+                {weeklyOverdrive > 0 && (
+                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40 animate-pulse">
+                    OVERDRIVE
+                  </span>
+                )}
               </div>
               <div className="text-2xl font-black text-emerald-400">
                 W{currentWeek} <span className="text-sm font-normal text-slate-500">of 18</span>
               </div>
-              <div className="text-xs text-slate-400 mt-1">
-                {currentWeekTotal.toFixed(2)}h logged this week
+              <div className="text-xs text-slate-300 mt-1 font-mono">
+                {currentWeekTotal.toFixed(2)}h logged
+                {weeklyOverdrive > 0 && (
+                  <span className="text-purple-400 font-bold ml-1">(+{weeklyOverdrive}h banked!)</span>
+                )}
               </div>
             </div>
 
@@ -256,6 +314,7 @@
             </div>
           </div>
 
+          {/* Sync Status Banner */}
           <div className="flex items-center justify-between text-xs px-3 py-1.5 bg-slate-900/40 border border-slate-800 rounded-lg mb-6">
             <span className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -270,6 +329,7 @@
             </button>
           </div>
 
+          {/* TAB 1: QUICK LOG WITH GAMIFIED OVERDRIVE STATES */}
           {activeTab === 'deck' && (
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
@@ -278,7 +338,7 @@
                     {isPHM ? 'Propulsion Logging Console' : 'Weekly Course Hour Entry'}
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Tap to add time or type exact hours.
+                    Target: 1.5h per course. Hours logged beyond 1.5h enter <span className="text-purple-400 font-semibold">Overdrive Burn</span>.
                   </p>
                 </div>
                 <select
@@ -300,17 +360,42 @@
                 {COURSES.map(course => {
                   const weekHours = parseFloat(matrix[course.id]?.[currentWeek]) || 0;
                   const totalHours = getCourseTotal(course.id);
+                  const isGoalMet = weekHours >= 1.5;
+                  const isOverdrive = weekHours > 1.5;
+                  const bonusHours = Math.max(0, Math.round((weekHours - 1.5) * 100) / 100);
+
                   return (
-                    <div key={course.id} className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div 
+                      key={course.id} 
+                      className={`py-3.5 px-3 rounded-xl transition-all duration-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                        isOverdrive 
+                          ? 'bg-purple-950/20 border border-purple-500/30' 
+                          : isGoalMet 
+                          ? 'bg-emerald-950/20 border border-emerald-500/20' 
+                          : ''
+                      }`}
+                    >
                       <div>
                         <div className="flex items-center gap-2">
+                          <span className="text-base">{course.icon}</span>
                           <span className="text-sm font-semibold text-white">{course.name}</span>
                           <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
                             {course.cat}
                           </span>
+                          {isOverdrive ? (
+                            <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/40">
+                              ⚡ OVERDRIVE +{bonusHours}h
+                            </span>
+                          ) : isGoalMet ? (
+                            <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                              ✓ 1.5h GOAL MET
+                            </span>
+                          ) : null}
                         </div>
-                        <div className="text-xs text-slate-400 mt-0.5">
-                          {isPHM ? 'Burned' : 'Completed'}: <strong className="text-slate-200">{totalHours.toFixed(2)}h</strong> / {course.target}.0h
+                        <div className="text-xs text-slate-400 mt-1">
+                          Term Burned: <strong className="text-slate-200">{totalHours.toFixed(2)}h</strong> / {course.target}.0h
+                          <span className="mx-2 text-slate-600">|</span>
+                          Week Burn: <strong className={isOverdrive ? 'text-purple-300 font-bold' : isGoalMet ? 'text-emerald-400 font-bold' : 'text-slate-300'}>{weekHours.toFixed(2)}h / 1.5h</strong>
                         </div>
                       </div>
 
@@ -329,29 +414,42 @@
                             value={weekHours === 0 ? '' : weekHours}
                             placeholder="0.00"
                             onChange={(e) => setSpecificHours(course.id, e.target.value)}
-                            className="w-16 h-8 text-center text-xs font-mono font-bold bg-slate-950 border border-slate-700 text-amber-400 rounded focus:outline-none focus:border-amber-500"
+                            className={`w-16 h-8 text-center text-xs font-mono font-bold bg-slate-950 border rounded focus:outline-none ${
+                              isOverdrive 
+                                ? 'border-purple-500 text-purple-300 ring-1 ring-purple-500/50' 
+                                : isGoalMet 
+                                ? 'border-emerald-500 text-emerald-300' 
+                                : 'border-slate-700 text-amber-400'
+                            }`}
                           />
                           <span className="absolute right-1 top-2 text-[10px] text-slate-500 pointer-events-none">h</span>
                         </div>
 
                         <button
                           onClick={() => addIncrement(course.id, 0.25)}
-                          className="px-2 h-8 rounded bg-slate-800 hover:bg-amber-500/20 text-slate-200 hover:text-amber-300 font-medium text-xs border border-slate-700 transition"
+                          className={`px-2 h-8 rounded text-xs font-medium border transition ${
+                            isGoalMet 
+                              ? 'bg-purple-950/40 hover:bg-purple-900/60 border-purple-500/40 text-purple-200 hover:text-purple-100' 
+                              : 'bg-slate-800 hover:bg-amber-500/20 border-slate-700 text-slate-200 hover:text-amber-300'
+                          }`}
                         >+15m</button>
                         
                         <button
                           onClick={() => addIncrement(course.id, 0.5)}
-                          className="px-2 h-8 rounded bg-slate-800 hover:bg-amber-500/20 text-slate-200 hover:text-amber-300 font-medium text-xs border border-slate-700 transition"
+                          className={`px-2 h-8 rounded text-xs font-medium border transition ${
+                            isGoalMet 
+                              ? 'bg-purple-950/40 hover:bg-purple-900/60 border-purple-500/40 text-purple-200 hover:text-purple-100' 
+                              : 'bg-slate-800 hover:bg-amber-500/20 border-slate-700 text-slate-200 hover:text-amber-300'
+                          }`}
                         >+30m</button>
-                        
-                        <button
-                          onClick={() => addIncrement(course.id, 0.75)}
-                          className="px-2 h-8 rounded bg-slate-800 hover:bg-amber-500/20 text-slate-200 hover:text-amber-300 font-medium text-xs border border-slate-700 transition"
-                        >+45m</button>
 
                         <button
                           onClick={() => addIncrement(course.id, 1.0)}
-                          className="px-2.5 h-8 rounded bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition"
+                          className={`px-2.5 h-8 rounded font-bold text-xs transition shadow-sm ${
+                            isGoalMet 
+                              ? 'bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white' 
+                              : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                          }`}
                         >+1h</button>
                       </div>
                     </div>
@@ -361,6 +459,7 @@
             </div>
           )}
 
+          {/* TAB 2: SEMESTER MATRIX */}
           {activeTab === 'grid' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 overflow-x-auto">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200 mb-3">
@@ -385,9 +484,15 @@
                       <td className="p-2 text-right font-bold text-amber-400">{getCourseTotal(course.id).toFixed(2)}h</td>
                       {Array.from({ length: 18 }, (_, i) => i + 1).map(w => {
                         const val = matrix[course.id]?.[w] || 0;
+                        const isOver = val > 1.5;
+                        const isMet = val >= 1.5;
                         return (
                           <td key={w} className={`p-1 text-center ${w === currentWeek ? 'bg-amber-500/10' : ''}`}>
-                            {val > 0 ? Number(val).toFixed(2).replace(/\.00$/, '') : '-'}
+                            {val > 0 ? (
+                              <span className={isOver ? 'text-purple-400 font-bold' : isMet ? 'text-emerald-400 font-semibold' : ''}>
+                                {Number(val).toFixed(2).replace(/\.00$/, '')}
+                              </span>
+                            ) : '-'}
                           </td>
                         );
                       })}
@@ -398,6 +503,7 @@
             </div>
           )}
 
+          {/* TAB 3: CONFIG */}
           {activeTab === 'config' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-4">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200">
@@ -430,5 +536,3 @@
 
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
-</body>
-</html>
