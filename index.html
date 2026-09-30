@@ -1,4 +1,23 @@
-<script type="text/babel">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nora - Homeschool Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .font-phm { font-family: 'Space Grotesk', monospace, sans-serif; }
+    .font-parent { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
     const { useState, useEffect } = React;
 
     const COURSES = [
@@ -9,10 +28,11 @@
       { id: 'civics', name: 'Civics', cat: 'Humanities', target: 60, icon: '⚖️' }
     ];
 
-    // Web Audio Synthesizer for instant micro-rewards (zero external MP3 files needed)
     const playChime = (type = 'click') => {
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
@@ -27,21 +47,18 @@
           osc.start();
           osc.stop(ctx.currentTime + 0.08);
         } else if (type === 'milestone') {
-          // Rocky celebration chime
           const now = ctx.currentTime;
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(587.33, now); // D5
-          osc.frequency.setValueAtTime(739.99, now + 0.1); // F#5
-          osc.frequency.setValueAtTime(880.00, now + 0.2); // A5
-          osc.frequency.setValueAtTime(1174.66, now + 0.3); // D6
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.setValueAtTime(739.99, now + 0.1);
+          osc.frequency.setValueAtTime(880.00, now + 0.2);
+          osc.frequency.setValueAtTime(1174.66, now + 0.3);
           gain.gain.setValueAtTime(0.12, now);
           gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
           osc.start();
           osc.stop(now + 0.5);
         }
-      } catch (e) {
-        // AudioContext muted/unsupported
-      }
+      } catch (e) {}
     };
 
     const getAutoWeek = () => {
@@ -74,7 +91,7 @@
         };
       });
       const [isSyncing, setIsSyncing] = useState(false);
-      const [syncStatus, setSyncStatus] = useState('Synced with Sheet');
+      const [syncStatus, setSyncStatus] = useState('Ready');
 
       useEffect(() => {
         localStorage.setItem('tracker_view_mode', viewMode);
@@ -105,8 +122,6 @@
       const targetPace = currentWeek * 7.5;
       const isAhead = grandTotal >= targetPace;
       const isClose = grandTotal >= targetPace * 0.8;
-
-      // Overdrive calculations
       const weeklyOverdrive = Math.max(0, Math.round((currentWeekTotal - 7.5) * 100) / 100);
 
       const pullFromSheet = async () => {
@@ -148,6 +163,25 @@
         }
       };
 
+      const updateAndCheckMilestone = (courseId, nextVal) => {
+        const prevVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
+        if (prevVal < 1.5 && nextVal >= 1.5) {
+          playChime('milestone');
+          triggerToast('Goal Met! (1.5h) Entered Overdrive Burn! 🚀', '⚡');
+        } else if (nextVal > 1.5 && nextVal > prevVal) {
+          triggerToast(`+${Math.round((nextVal - 1.5) * 100) / 100}h Bonus Astrophage banked! Fist my bump! 🤝`, '✨');
+        }
+
+        setMatrix(prev => ({
+          ...prev,
+          [courseId]: {
+            ...(prev[courseId] || {}),
+            [currentWeek]: nextVal
+          }
+        }));
+        saveCellToSheet(courseId, currentWeek, nextVal);
+      };
+
       const setSpecificHours = (courseId, value) => {
         const num = parseFloat(value);
         const nextVal = isNaN(num) || num < 0 ? 0 : Math.round(num * 100) / 100;
@@ -161,35 +195,11 @@
         updateAndCheckMilestone(courseId, nextVal);
       };
 
-      const updateAndCheckMilestone = (courseId, nextVal) => {
-        const prevVal = parseFloat(matrix[courseId]?.[currentWeek]) || 0;
-        
-        // Gamified toast triggers
-        if (prevVal < 1.5 && nextVal >= 1.5) {
-          playChime('milestone');
-          triggerToast('Goal Met! (1.5h) Entered Overdrive Burn! 🚀', '⚡');
-        } else if (nextVal > 1.5 && deltaWasPositive(prevVal, nextVal)) {
-          triggerToast(`+${Math.round((nextVal - 1.5)*100)/100}h Bonus Astrophage banked! Fist my bump! 🤝`, '✨');
-        }
-
-        setMatrix(prev => ({
-          ...prev,
-          [courseId]: {
-            ...(prev[courseId] || {}),
-            [currentWeek]: nextVal
-          }
-        }));
-        saveCellToSheet(courseId, currentWeek, nextVal);
-      };
-
-      const deltaWasPositive = (prev, curr) => curr > prev;
-
       const isPHM = viewMode === 'phm';
 
       return (
         <div className={`p-4 md:p-8 max-w-5xl mx-auto ${isPHM ? 'font-phm' : 'font-parent'}`}>
           
-          {/* Toast Notification */}
           <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 transform ${toast.show ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}`}>
             <div className="bg-slate-900 border-2 border-amber-500/80 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
               <span className="text-xl">{toast.icon}</span>
@@ -197,7 +207,6 @@
             </div>
           </div>
 
-          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
             <div>
               <div className="flex items-center gap-3">
@@ -248,7 +257,6 @@
             </div>
           </div>
 
-          {/* Top Status Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
             <div className="bg-slate-900/80 border border-slate-800/80 p-4 rounded-xl">
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
@@ -262,7 +270,6 @@
               </div>
             </div>
 
-            {/* Overdrive Week Indicator */}
             <div className={`p-4 rounded-xl border transition-all ${
               weeklyOverdrive > 0 
                 ? 'bg-gradient-to-br from-indigo-950/60 to-purple-950/60 border-purple-500/50 shadow-lg shadow-purple-950/30' 
@@ -314,7 +321,6 @@
             </div>
           </div>
 
-          {/* Sync Status Banner */}
           <div className="flex items-center justify-between text-xs px-3 py-1.5 bg-slate-900/40 border border-slate-800 rounded-lg mb-6">
             <span className="flex items-center gap-2">
               <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -329,7 +335,6 @@
             </button>
           </div>
 
-          {/* TAB 1: QUICK LOG WITH GAMIFIED OVERDRIVE STATES */}
           {activeTab === 'deck' && (
             <div className="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5">
               <div className="flex items-center justify-between mb-4">
@@ -459,7 +464,6 @@
             </div>
           )}
 
-          {/* TAB 2: SEMESTER MATRIX */}
           {activeTab === 'grid' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 overflow-x-auto">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200 mb-3">
@@ -503,7 +507,6 @@
             </div>
           )}
 
-          {/* TAB 3: CONFIG */}
           {activeTab === 'config' && (
             <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-5 space-y-4">
               <h2 className="text-sm font-bold tracking-wide uppercase text-slate-200">
@@ -536,3 +539,5 @@
 
     ReactDOM.createRoot(document.getElementById('root')).render(<App />);
   </script>
+</body>
+</html>
