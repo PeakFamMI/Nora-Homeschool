@@ -22,15 +22,39 @@
       --c-civics: #ec4899;
     }
 
+    body.phm-mode {
+      --bg: #050b14;
+      --card-bg: #0b1526;
+      --card-border: #1e3a5f;
+      --accent: #00e5ff;
+      --accent-hover: #00b4d8;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; }
+    body { background-color: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; transition: background-color 0.3s; }
     .container { max-width: 1100px; margin: 0 auto; }
 
-    header { margin-bottom: 24px; }
+    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
     .badge { color: var(--accent); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
     .badge::before { content: ""; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
     h1 { font-size: 1.8rem; font-weight: 800; }
     .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
+
+    .theme-toggle-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+    .theme-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
 
     .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px; }
     .metric-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px; }
@@ -42,10 +66,10 @@
     .progress-bar-bg { width: 100%; height: 6px; background: #1f2937; border-radius: 3px; overflow: hidden; margin-top: 10px; }
     .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
 
-    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 24px; }
     .course-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; }
     .course-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-    .course-name { font-size: 0.85rem; font-weight: 700; }
+    .course-name { font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
     .course-percent { font-size: 0.85rem; font-weight: 700; }
     .course-sub { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .course-footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
@@ -67,7 +91,7 @@
     .task-checkbox { margin-top: 3px; width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
     .task-content { flex: 1; }
     .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
-    .badge-course { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; }
+    .badge-course { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; }
     .task-title { font-size: 0.95rem; font-weight: 600; }
     .task-card.completed .task-title { text-decoration: line-through; color: var(--text-muted); }
 
@@ -82,14 +106,19 @@
 
 <div class="container">
   <header>
-    <div class="badge">GRADE 9 ACADEMIC COMPETENCY RECORD</div>
-    <h1>Nora Peak // 2026–2027 Curriculum</h1>
-    <div class="subtitle" id="headerSubtitle">Loading academic progress...</div>
+    <div>
+      <div class="badge" id="headerBadge">GRADE 9 ACADEMIC COMPETENCY RECORD</div>
+      <h1 id="headerTitle">Nora Peak // 2026–2027 Curriculum</h1>
+      <div class="subtitle" id="headerSubtitle">Loading academic progress...</div>
+    </div>
+    <button class="theme-toggle-btn" onclick="toggleTheme()">
+      <span id="themeToggleIcon">🚀</span> <span id="themeToggleText">Project Hail Mary Mode</span>
+    </button>
   </header>
 
   <section class="metrics-grid">
     <div class="metric-card">
-      <div class="metric-title">Total Tasks Completed</div>
+      <div class="metric-title" id="mTotalLabel">Total Tasks Completed</div>
       <div class="metric-value"><span id="mCompleted">0</span> <span class="metric-sub">/ <span id="mTotal">0</span></span></div>
       <div class="progress-bar-bg"><div class="progress-bar-fill" id="mProgressFill" style="background: var(--success); width: 0%;"></div></div>
     </div>
@@ -99,14 +128,14 @@
       <div class="metric-footer" id="mWkRemaining">0 remaining this week</div>
     </div>
     <div class="metric-card">
-      <div class="metric-title">Pacing vs. Schedule</div>
+      <div class="metric-title" id="mPacingLabel">Pacing vs. Schedule</div>
       <div class="metric-value" id="mPacingVal">On Track</div>
       <div class="metric-footer" id="mPacingTarget">Target: 0</div>
     </div>
     <div class="metric-card">
-      <div class="metric-title">Credits Accrued (Full Year)</div>
+      <div class="metric-title" id="mCreditsLabel">Credits Accrued (Full Year)</div>
       <div class="metric-value"><span id="mCredits">0.00</span> <span class="metric-sub">/ 5.00 Cr</span></div>
-      <div class="metric-footer">1.00 credit per course (Civics 0.50)</div>
+      <div class="metric-footer" id="mCreditsFooter">1.00 credit per course (Civics 0.50)</div>
     </div>
   </section>
 
@@ -146,43 +175,114 @@
     "May 10 - May 14", "May 17 - May 21", "May 24 - May 28", "Jun 1 - Jun 17"
   ];
 
-  const COURSE_METADATA = {
-    english9: { name: "English 9", sub: "The Good & The Beautiful (HS 1)", class: "badge-english", color: "var(--c-english)" },
-    geometry: { name: "Geometry", sub: "CK-12 Interactive Geometry 2.0", class: "badge-geometry", color: "var(--c-geometry)" },
-    biology: { name: "Biology (with Lab)", sub: "CK-12 High School Biology", class: "badge-biology", color: "var(--c-biology)" },
-    ushistory: { name: "US History", sub: "EPISD / CK-12 US History", class: "badge-history", color: "var(--c-history)" },
-    civics: { name: "Civics / US Govt", sub: "EPISD / CK-12 US Government", class: "badge-civics", color: "var(--c-civics)" }
+  const COURSES = {
+    english9: {
+      emoji: "📖",
+      name: "English 9",
+      phmName: "Xenolinguistics & Comms",
+      sub: "The Good & The Beautiful (HS 1)",
+      class: "badge-english",
+      color: "var(--c-english)"
+    },
+    geometry: {
+      emoji: "📐",
+      name: "Geometry",
+      phmName: "Orbital Mechanics & Geometry",
+      sub: "CK-12 Interactive Geometry 2.0",
+      class: "badge-geometry",
+      color: "var(--c-geometry)"
+    },
+    biology: {
+      emoji: "🧬",
+      name: "Biology (with Lab)",
+      phmName: "Astrophage Cellular Biology",
+      sub: "CK-12 High School Biology",
+      class: "badge-biology",
+      color: "var(--c-biology)"
+    },
+    ushistory: {
+      emoji: "📜",
+      name: "US History",
+      phmName: "Earth Historical Archives",
+      sub: "EPISD / CK-12 US History",
+      class: "badge-history",
+      color: "var(--c-history)"
+    },
+    civics: {
+      emoji: "🏛️",
+      name: "Civics / US Govt",
+      phmName: "Planetary Systems Governance",
+      sub: "EPISD / CK-12 US Government",
+      class: "badge-civics",
+      color: "var(--c-civics)"
+    }
   };
 
-  COURSE_METADATA.english = COURSE_METADATA.english9;
-  COURSE_METADATA.history = COURSE_METADATA.ushistory;
-  COURSE_METADATA.gov = COURSE_METADATA.civics;
-
+  let isPhmMode = localStorage.getItem("phm_mode") === "true";
   let allTasks = [];
   let currentView = 'current';
   let selectedBrowseWeek = CURRENT_WEEK;
 
-  function normalizeTask(raw) {
-    const id = raw.task_id || raw.id || "";
-    let rawCourse = String(raw.course_id || raw.course || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (rawCourse.includes("eng")) rawCourse = "english9";
-    else if (rawCourse.includes("geo")) rawCourse = "geometry";
-    else if (rawCourse.includes("bio")) rawCourse = "biology";
-    else if (rawCourse.includes("hist")) rawCourse = "ushistory";
-    else if (rawCourse.includes("civ") || rawCourse.includes("gov")) rawCourse = "civics";
+  function toggleTheme() {
+    isPhmMode = !isPhmMode;
+    localStorage.setItem("phm_mode", isPhmMode);
+    applyTheme();
+    renderAll();
+  }
 
-    const title = raw.task_title || raw.title || raw.task || raw.name || "Untitled Task";
-    const courseName = raw.course_name || (COURSE_METADATA[rawCourse] ? COURSE_METADATA[rawCourse].name : rawCourse);
+  function applyTheme() {
+    if (isPhmMode) {
+      document.body.classList.add("phm-mode");
+      document.getElementById("themeToggleIcon").innerText = "📘";
+      document.getElementById("themeToggleText").innerText = "Standard English View";
+      document.getElementById("headerBadge").innerText = "PROJECT HAIL MARY // ORBITAL MISSION LOG";
+      document.getElementById("headerTitle").innerText = "Dr. Grace // Nora Peak Mission Directive";
+      document.getElementById("mTotalLabel").innerText = "Astrophage Protocols Cleared";
+      document.getElementById("mPacingLabel").innerText = "Trajectory Variance";
+      document.getElementById("mCreditsLabel").innerText = "Mission Readiness Units";
+      document.getElementById("mCreditsFooter").innerText = "1.00 MRU per core discipline";
+    } else {
+      document.body.classList.remove("phm-mode");
+      document.getElementById("themeToggleIcon").innerText = "🚀";
+      document.getElementById("themeToggleText").innerText = "Project Hail Mary Mode";
+      document.getElementById("headerBadge").innerText = "GRADE 9 ACADEMIC COMPETENCY RECORD";
+      document.getElementById("headerTitle").innerText = "Nora Peak // 2026–2027 Curriculum";
+      document.getElementById("mTotalLabel").innerText = "Total Tasks Completed";
+      document.getElementById("mPacingLabel").innerText = "Pacing vs. Schedule";
+      document.getElementById("mCreditsLabel").innerText = "Credits Accrued (Full Year)";
+      document.getElementById("mCreditsFooter").innerText = "1.00 credit per course (Civics 0.50)";
+    }
+  }
+
+  function normalizeTask(raw) {
+    const id = String(raw.task_id || raw.id || "");
+    const title = String(raw.task_title || raw.title || raw.task || raw.name || "Untitled Task").trim();
+    const rawCourseStr = String(raw.course_id || raw.course_name || raw.course || raw.subject || "").toLowerCase();
+
+    let courseKey = "civics";
+    if (rawCourseStr.includes("eng") || rawCourseStr.includes("good") || title.includes("Reading:") || title.includes("Writing:")) {
+      courseKey = "english9";
+    } else if (rawCourseStr.includes("geo") || title.includes("Geometry") || title.includes("Volume of Solids") || title.includes("Transformations")) {
+      courseKey = "geometry";
+    } else if (rawCourseStr.includes("bio") || title.includes("Cell") || title.includes("Mitosis") || title.includes("DNA")) {
+      courseKey = "biology";
+    } else if (rawCourseStr.includes("hist") || title.includes("Reforming") || title.includes("Gilded")) {
+      courseKey = "ushistory";
+    } else if (rawCourseStr.includes("civ") || rawCourseStr.includes("gov") || title.includes("Constitution") || title.includes("Federalism")) {
+      courseKey = "civics";
+    }
+
     const week = parseInt(raw.week, 10) || 1;
     const weekDates = raw.week_dates || raw.dates || WEEK_DATES[week - 1] || "";
     const unit = raw.unit || "";
     const completed = !!(raw.completed === true || raw.completed === "TRUE" || raw.completed === 1 || raw.done);
     const dateCompleted = raw.date_completed || "";
 
-    return { id, course_id: rawCourse, course_name: courseName, title, week, week_dates: weekDates, unit, completed, date_completed: dateCompleted };
+    return { id, course_id: courseKey, title, week, week_dates: weekDates, unit, completed, date_completed: dateCompleted };
   }
 
   async function init() {
+    applyTheme();
     buildWeekPills();
     document.getElementById("btnCurrentWk").innerText = `This Week (Wk ${CURRENT_WEEK})`;
     document.getElementById("currentWkLabel").innerText = `Week ${CURRENT_WEEK}`;
@@ -252,10 +352,10 @@
     const pacingEl = document.getElementById("mPacingVal");
 
     if (behind > 0) {
-      pacingEl.innerText = `${behind} Tasks Behind`;
+      pacingEl.innerText = isPhmMode ? `${behind} Behind Target` : `${behind} Tasks Behind`;
       pacingEl.style.color = "#f59e0b";
     } else {
-      pacingEl.innerText = "On Track";
+      pacingEl.innerText = isPhmMode ? "Nominal Trajectory" : "On Track";
       pacingEl.style.color = "#10b981";
     }
     document.getElementById("mPacingTarget").innerText = `Target through Wk ${CURRENT_WEEK}: ${targetThroughCurrent}`;
@@ -275,26 +375,27 @@
     });
 
     allTasks.forEach(t => {
-      const c = t.course_id;
-      if (courseStats[c]) {
-        courseStats[c].total++;
-        if (t.completed) courseStats[c].done++;
-        if (t.week <= CURRENT_WEEK) courseStats[c].target++;
+      const k = t.course_id;
+      if (courseStats[k]) {
+        courseStats[k].total++;
+        if (t.completed) courseStats[k].done++;
+        if (t.week <= CURRENT_WEEK) courseStats[k].target++;
       }
     });
 
     coreKeys.forEach(k => {
-      const meta = COURSE_METADATA[k];
+      const meta = COURSES[k];
       const stat = courseStats[k];
       const pct = stat.total ? Math.round((stat.done / stat.total) * 100) : 0;
       const paceDiff = stat.done - stat.target;
       const paceLabel = paceDiff >= 0 ? "On pace" : `${paceDiff} pace`;
+      const displayName = isPhmMode ? meta.phmName : meta.name;
 
       const card = document.createElement("div");
       card.className = "course-card";
       card.innerHTML = `
         <div class="course-header">
-          <span class="course-name">${meta.name}</span>
+          <span class="course-name">${meta.emoji} ${displayName}</span>
           <span class="course-percent">${pct}%</span>
         </div>
         <div class="course-sub">${meta.sub}</div>
@@ -318,8 +419,8 @@
     if (search.trim()) {
       filtered = allTasks.filter(t => 
         t.title.toLowerCase().includes(search) ||
-        t.course_name.toLowerCase().includes(search) ||
-        t.unit.toLowerCase().includes(search)
+        t.unit.toLowerCase().includes(search) ||
+        COURSES[t.course_id].name.toLowerCase().includes(search)
       );
     } else if (currentView === 'current') {
       filtered = allTasks.filter(t => t.week === CURRENT_WEEK);
@@ -337,14 +438,15 @@
     }
 
     container.innerHTML = filtered.map(t => {
-      const meta = COURSE_METADATA[t.course_id] || { class: "badge-civics", name: t.course_name };
+      const meta = COURSES[t.course_id] || COURSES.civics;
       const isDone = !!t.completed;
+      const displayName = isPhmMode ? meta.phmName : meta.name;
       return `
         <div class="task-card ${isDone ? 'completed' : ''}" id="card_${t.id}">
           <input type="checkbox" class="task-checkbox" ${isDone ? 'checked' : ''} onchange="toggleTask('${t.id}', this.checked)">
           <div class="task-content">
             <div class="task-meta">
-              <span class="badge-course ${meta.class}">${meta.name}</span>
+              <span class="badge-course ${meta.class}">${meta.emoji} ${displayName}</span>
               <span>Week ${t.week} (${t.week_dates})</span>
               ${t.unit ? `<span>• ${t.unit}</span>` : ''}
             </div>
