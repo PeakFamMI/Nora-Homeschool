@@ -65,3 +65,304 @@
     .task-list { display: flex; flex-direction: column; gap: 10px; }
     .task-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 14px; }
     .task-checkbox { margin-top: 3px; width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
+    .task-content { flex: 1; }
+    .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
+    .badge-course { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; }
+    .task-title { font-size: 0.95rem; font-weight: 600; }
+    .task-card.completed .task-title { text-decoration: line-through; color: var(--text-muted); }
+
+    .badge-english { background: rgba(249, 115, 22, 0.15); color: var(--c-english); }
+    .badge-geometry { background: rgba(56, 189, 248, 0.15); color: var(--c-geometry); }
+    .badge-biology { background: rgba(16, 185, 129, 0.15); color: var(--c-biology); }
+    .badge-history { background: rgba(168, 85, 247, 0.15); color: var(--c-history); }
+    .badge-civics { background: rgba(236, 72, 153, 0.15); color: var(--c-civics); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">GRADE 9 ACADEMIC COMPETENCY RECORD</div>
+    <h1>Nora Peak // 2026–2027 Curriculum</h1>
+    <div class="subtitle" id="headerSubtitle">Loading academic progress...</div>
+  </header>
+
+  <section class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-title">Total Tasks Completed</div>
+      <div class="metric-value"><span id="mCompleted">0</span> <span class="metric-sub">/ <span id="mTotal">0</span></span></div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="mProgressFill" style="background: var(--success); width: 0%;"></div></div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title"><span id="currentWkLabel">Current Week</span> Progress</div>
+      <div class="metric-value"><span id="mWkCompleted">0</span> <span class="metric-sub">/ <span id="mWkTotal">0</span></span></div>
+      <div class="metric-footer" id="mWkRemaining">0 remaining this week</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Pacing vs. Schedule</div>
+      <div class="metric-value" id="mPacingVal">On Track</div>
+      <div class="metric-footer" id="mPacingTarget">Target: 0</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Credits Accrued (Full Year)</div>
+      <div class="metric-value"><span id="mCredits">0.00</span> <span class="metric-sub">/ 5.00 Cr</span></div>
+      <div class="metric-footer">1.00 credit per course (Civics 0.50)</div>
+    </div>
+  </section>
+
+  <section class="courses-grid" id="courseCardsGrid"></section>
+
+  <div class="nav-bar">
+    <div class="nav-tabs">
+      <button class="tab-btn active" id="btnCurrentWk" onclick="setView('current')">This Week</button>
+      <button class="tab-btn" id="btnCatchUp" onclick="setView('catchup')">Catch-Up Queue</button>
+      <button class="tab-btn" id="btnBrowse" onclick="setView('browse')">Browse by Week</button>
+      <button class="tab-btn" id="btnAll" onclick="setView('all')">All Tasks</button>
+    </div>
+    <input type="text" class="search-input" id="searchBox" placeholder="Search lessons..." oninput="handleSearch()">
+  </div>
+
+  <div class="week-scroller" id="weekPills" style="display: none;"></div>
+
+  <div class="task-list" id="taskListContainer">
+    <div style="padding: 30px; text-align: center; color: var(--text-muted);">Syncing task records with Google Sheets...</div>
+  </div>
+</div>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbyqGlBTtPq0XwLFXDByPBVKVlUhy0iGLgs-HEjEyMd3ekO6uffPMgP-_3CD7644e3dE/exec";
+  const TOTAL_WEEKS = 36;
+  const CURRENT_WEEK = 7;
+
+  const WEEK_DATES = [
+    "Sep 7 - Sep 11", "Sep 14 - Sep 18", "Sep 21 - Sep 25", "Sep 28 - Oct 2",
+    "Oct 5 - Oct 9", "Oct 12 - Oct 16", "Oct 19 - Oct 23", "Oct 26 - Oct 30",
+    "Nov 2 - Nov 6", "Nov 9 - Nov 13", "Nov 16 - Nov 20", "Nov 23 - Nov 27",
+    "Nov 30 - Dec 4", "Dec 7 - Dec 11", "Dec 14 - Dec 18", "Jan 4 - Jan 8",
+    "Jan 11 - Jan 15", "Jan 18 - Jan 22", "Jan 25 - Jan 29", "Feb 1 - Feb 5",
+    "Feb 8 - Feb 12", "Feb 15 - Feb 19", "Feb 22 - Feb 26", "Mar 1 - Mar 5",
+    "Mar 8 - Mar 12", "Mar 15 - Mar 19", "Mar 22 - Mar 26", "Apr 5 - Apr 9",
+    "Apr 12 - Apr 16", "Apr 19 - Apr 23", "Apr 26 - Apr 30", "May 3 - May 7",
+    "May 10 - May 14", "May 17 - May 21", "May 24 - May 28", "Jun 1 - Jun 17"
+  ];
+
+  const COURSE_METADATA = {
+    english: { name: "English 9", sub: "The Good & The Beautiful (HS 1)", class: "badge-english", color: "var(--c-english)" },
+    geometry: { name: "Geometry", sub: "CK-12 Interactive Geometry 2.0", class: "badge-geometry", color: "var(--c-geometry)" },
+    biology: { name: "Biology (with Lab)", sub: "CK-12 High School Biology", class: "badge-biology", color: "var(--c-biology)" },
+    history: { name: "US History", sub: "EPISD / CK-12 US History", class: "badge-history", color: "var(--c-history)" },
+    civics: { name: "Civics / US Govt", sub: "EPISD / CK-12 US Government", class: "badge-civics", color: "var(--c-civics)" }
+  };
+
+  let allTasks = [];
+  let currentView = 'current';
+  let selectedBrowseWeek = CURRENT_WEEK;
+
+  async function init() {
+    buildWeekPills();
+    document.getElementById("btnCurrentWk").innerText = `This Week (Wk ${CURRENT_WEEK})`;
+    document.getElementById("currentWkLabel").innerText = `Week ${CURRENT_WEEK}`;
+    document.getElementById("headerSubtitle").innerText = `Academic Week ${CURRENT_WEEK} of ${TOTAL_WEEKS} (Term Start: Sept 7, 2026) • Sync: Synced`;
+
+    try {
+      const res = await fetch(`${API_URL}?t=${Date.now()}`);
+      const data = await res.json();
+      allTasks = data.tasks || [];
+      renderAll();
+    } catch (err) {
+      document.getElementById("taskListContainer").innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Error loading data. Check internet connection or sheet permissions.</div>`;
+    }
+  }
+
+  function buildWeekPills() {
+    const scroller = document.getElementById("weekPills");
+    scroller.innerHTML = "";
+    for (let w = 1; w <= TOTAL_WEEKS; w++) {
+      const pill = document.createElement("button");
+      pill.className = `week-pill ${w === CURRENT_WEEK ? 'current' : ''} ${w === selectedBrowseWeek ? 'active' : ''}`;
+      pill.innerText = `Wk ${w}`;
+      pill.onclick = () => {
+        selectedBrowseWeek = w;
+        document.querySelectorAll(".week-pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        renderTaskList();
+      };
+      scroller.appendChild(pill);
+    }
+  }
+
+  function setView(view) {
+    currentView = view;
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+    document.getElementById("weekPills").style.display = view === 'browse' ? 'flex' : 'none';
+
+    if (view === 'current') document.getElementById("btnCurrentWk").classList.add("active");
+    if (view === 'catchup') document.getElementById("btnCatchUp").classList.add("active");
+    if (view === 'browse') document.getElementById("btnBrowse").classList.add("active");
+    if (view === 'all') document.getElementById("btnAll").classList.add("active");
+
+    renderTaskList();
+  }
+
+  function renderAll() {
+    renderTopMetrics();
+    renderCourseCards();
+    renderTaskList();
+  }
+
+  function renderTopMetrics() {
+    const total = allTasks.length;
+    const completed = allTasks.filter(t => t.completed).length;
+    document.getElementById("mTotal").innerText = total;
+    document.getElementById("mCompleted").innerText = completed;
+    document.getElementById("mProgressFill").style.width = total ? `${(completed / total) * 100}%` : '0%';
+
+    const currentWkTasks = allTasks.filter(t => parseInt(t.week, 10) === CURRENT_WEEK);
+    const currentWkDone = currentWkTasks.filter(t => t.completed).length;
+    document.getElementById("mWkTotal").innerText = currentWkTasks.length;
+    document.getElementById("mWkCompleted").innerText = currentWkDone;
+    document.getElementById("mWkRemaining").innerText = `${currentWkTasks.length - currentWkDone} remaining this week`;
+
+    const targetThroughCurrent = allTasks.filter(t => parseInt(t.week, 10) <= CURRENT_WEEK).length;
+    const behind = targetThroughCurrent - completed;
+    const pacingEl = document.getElementById("mPacingVal");
+
+    if (behind > 0) {
+      pacingEl.innerText = `${behind} Tasks Behind`;
+      pacingEl.style.color = "#f59e0b";
+    } else {
+      pacingEl.innerText = "On Track";
+      pacingEl.style.color = "#10b981";
+    }
+    document.getElementById("mPacingTarget").innerText = `Target through Wk ${CURRENT_WEEK}: ${targetThroughCurrent}`;
+
+    const credits = total ? ((completed / total) * 5.0).toFixed(2) : "0.00";
+    document.getElementById("mCredits").innerText = credits;
+  }
+
+  function renderCourseCards() {
+    const container = document.getElementById("courseCardsGrid");
+    container.innerHTML = "";
+
+    const courseStats = {};
+    for (let c in COURSE_METADATA) {
+      courseStats[c] = { total: 0, done: 0, target: 0 };
+    }
+
+    allTasks.forEach(t => {
+      const c = t.course_id;
+      if (courseStats[c]) {
+        courseStats[c].total++;
+        if (t.completed) courseStats[c].done++;
+        if (parseInt(t.week, 10) <= CURRENT_WEEK) courseStats[c].target++;
+      }
+    });
+
+    for (let c in COURSE_METADATA) {
+      const meta = COURSE_METADATA[c];
+      const stat = courseStats[c];
+      const pct = stat.total ? Math.round((stat.done / stat.total) * 100) : 0;
+      const paceDiff = stat.done - stat.target;
+      const paceLabel = paceDiff >= 0 ? "On pace" : `${paceDiff} pace`;
+
+      const card = document.createElement("div");
+      card.className = "course-card";
+      card.innerHTML = `
+        <div class="course-header">
+          <span class="course-name">${meta.name}</span>
+          <span class="course-percent">${pct}%</span>
+        </div>
+        <div class="course-sub">${meta.sub}</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width: ${pct}%; background: ${meta.color};"></div>
+        </div>
+        <div class="course-footer">
+          <span>${stat.done}/${stat.total} done</span>
+          <span style="color: ${paceDiff < 0 ? '#f59e0b' : '#10b981'}">${paceLabel}</span>
+        </div>
+      `;
+      container.appendChild(card);
+    }
+  }
+
+  function renderTaskList() {
+    const container = document.getElementById("taskListContainer");
+    const search = document.getElementById("searchBox").value.toLowerCase();
+    let filtered = [];
+
+    if (search.trim()) {
+      filtered = allTasks.filter(t => 
+        String(t.task_title).toLowerCase().includes(search) ||
+        String(t.course_name).toLowerCase().includes(search) ||
+        String(t.unit).toLowerCase().includes(search)
+      );
+    } else if (currentView === 'current') {
+      filtered = allTasks.filter(t => parseInt(t.week, 10) === CURRENT_WEEK);
+    } else if (currentView === 'catchup') {
+      filtered = allTasks.filter(t => parseInt(t.week, 10) <= CURRENT_WEEK && !t.completed);
+    } else if (currentView === 'browse') {
+      filtered = allTasks.filter(t => parseInt(t.week, 10) === selectedBrowseWeek);
+    } else {
+      filtered = allTasks;
+    }
+
+    if (!filtered.length) {
+      container.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-muted);">No tasks found for this view.</div>`;
+      return;
+    }
+
+    container.innerHTML = filtered.map(t => {
+      const meta = COURSE_METADATA[t.course_id] || { class: "badge-civics", name: t.course_name };
+      const isDone = !!t.completed;
+      return `
+        <div class="task-card ${isDone ? 'completed' : ''}" id="card_${t.task_id}">
+          <input type="checkbox" class="task-checkbox" ${isDone ? 'checked' : ''} onchange="toggleTask('${t.task_id}', this.checked)">
+          <div class="task-content">
+            <div class="task-meta">
+              <span class="badge-course ${meta.class}">${meta.name}</span>
+              <span>Week ${t.week} (${t.week_dates || WEEK_DATES[parseInt(t.week, 10) - 1] || ''})</span>
+              ${t.unit ? `<span>• ${t.unit}</span>` : ''}
+            </div>
+            <div class="task-title">${t.task_title}</div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function handleSearch() {
+    renderTaskList();
+  }
+
+  async function toggleTask(taskId, isCompleted) {
+    const task = allTasks.find(t => String(t.task_id) === String(taskId));
+    if (task) {
+      task.completed = isCompleted;
+      task.date_completed = isCompleted ? new Date().toISOString() : "";
+    }
+
+    const card = document.getElementById(`card_${taskId}`);
+    if (card) {
+      if (isCompleted) card.classList.add("completed");
+      else card.classList.remove("completed");
+    }
+
+    renderTopMetrics();
+    renderCourseCards();
+
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: taskId, completed: isCompleted })
+      });
+    } catch (e) {
+      console.warn("Background sync failed:", e);
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
