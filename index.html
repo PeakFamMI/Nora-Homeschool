@@ -257,24 +257,27 @@
   function normalizeTask(raw) {
     const id = String(raw.task_id || raw.id || "");
     const title = String(raw.task_title || raw.title || raw.task || raw.name || "Untitled Task").trim();
+    const unit = String(raw.unit || "").trim();
     const rawCourseStr = String(raw.course_id || raw.course_name || raw.course || raw.subject || "").toLowerCase();
+    const combined = (rawCourseStr + " " + unit + " " + title + " " + id).toLowerCase();
 
-    let courseKey = "civics";
-    if (rawCourseStr.includes("eng") || rawCourseStr.includes("good") || title.includes("Reading:") || title.includes("Writing:")) {
-      courseKey = "english9";
-    } else if (rawCourseStr.includes("geo") || title.includes("Geometry") || title.includes("Volume of Solids") || title.includes("Transformations")) {
+    let courseKey = "";
+    if (combined.includes("geo") || combined.includes("solid") || combined.includes("plane") || combined.includes("transform") || combined.includes("angle") || combined.includes("triangle")) {
       courseKey = "geometry";
-    } else if (rawCourseStr.includes("bio") || title.includes("Cell") || title.includes("Mitosis") || title.includes("DNA")) {
+    } else if (combined.includes("bio") || combined.includes("cell") || combined.includes("dna") || combined.includes("mitosis") || combined.includes("plant") || combined.includes("organism")) {
       courseKey = "biology";
-    } else if (rawCourseStr.includes("hist") || title.includes("Reforming") || title.includes("Gilded")) {
+    } else if (combined.includes("eng") || combined.includes("good") || combined.includes("david") || combined.includes("proctored unit") || combined.includes("vocabulary") || combined.includes("writing:") || combined.includes("reading:")) {
+      courseKey = "english9";
+    } else if (combined.includes("hist") || combined.includes("reforming") || combined.includes("gilded") || combined.includes("civil war") || combined.includes("progressive")) {
       courseKey = "ushistory";
-    } else if (rawCourseStr.includes("civ") || rawCourseStr.includes("gov") || title.includes("Constitution") || title.includes("Federalism")) {
+    } else if (combined.includes("civ") || combined.includes("gov") || combined.includes("constitution") || combined.includes("federalism") || combined.includes("branch") || combined.includes("amendment")) {
       courseKey = "civics";
+    } else {
+      courseKey = "geometry";
     }
 
     const week = parseInt(raw.week, 10) || 1;
     const weekDates = raw.week_dates || raw.dates || WEEK_DATES[week - 1] || "";
-    const unit = raw.unit || "";
     const completed = !!(raw.completed === true || raw.completed === "TRUE" || raw.completed === 1 || raw.done);
     const dateCompleted = raw.date_completed || "";
 
