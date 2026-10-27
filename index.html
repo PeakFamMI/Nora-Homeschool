@@ -586,3 +586,21 @@
                           • {task.unit}
                         </span>
                       </div>
+                      <div className={`text-sm font-medium mt-1 ${task.completed ? "line-through text-slate-500" : "text-slate-100"}`}>
+                        {task.title}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+</body>
+</html>
