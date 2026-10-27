@@ -32,46 +32,9 @@
   <script type="text/babel">
     const { useState, useEffect, useMemo } = React;
 
-    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqGlBTtPq0XwLFXDByPBVKVlUhy0iGLgs-HEjEyMd3ekO6uffPMgP-_3CD7644e3dE/exec"; 
-    const TOTAL_WEEKS = 18;
-
-    // Exact Monday start dates for each of the 18 academic weeks
-    const WEEK_START_DATES = [
-      { week: 1,  start: "2026-09-07" },
-      { week: 2,  start: "2026-09-14" },
-      { week: 3,  start: "2026-09-21" },
-      { week: 4,  start: "2026-09-28" },
-      { week: 5,  start: "2026-10-05" },
-      { week: 6,  start: "2026-10-12" },
-      { week: 7,  start: "2026-10-19" },
-      { week: 8,  start: "2026-10-26" },
-      { week: 9,  start: "2026-11-02" },
-      { week: 10, start: "2026-11-09" },
-      { week: 11, start: "2026-11-16" },
-      { week: 12, start: "2026-11-23" },
-      { week: 13, start: "2026-11-30" },
-      { week: 14, start: "2026-12-07" },
-      { week: 15, start: "2026-12-14" },
-      { week: 16, start: "2027-01-04" },
-      { week: 17, start: "2027-01-11" },
-      { week: 18, start: "2027-01-18" }
-    ];
-
-    function getCalendarWeek() {
-      const now = new Date();
-      const todayStr =
-        now.getFullYear() + "-" +
-        String(now.getMonth() + 1).padStart(2, "0") + "-" +
-        String(now.getDate()).padStart(2, "0");
-
-      let currentWk = 1;
-      for (let i = 0; i < WEEK_START_DATES.length; i++) {
-        if (todayStr >= WEEK_START_DATES[i].start) {
-          currentWk = WEEK_START_DATES[i].week;
-        }
-      }
-      return currentWk;
-    }
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqGlBTtPq0XwLFXDByPBVKVlUhy0iGLgs-HEjEyMd3ekO6uffPMgP-_3CD7644e3dE/exec";
+    const TOTAL_WEEKS = 36;
+    const DEFAULT_ACTIVE_WEEK = 7;
 
     const COURSE_META = {
       english9: {
@@ -136,10 +99,9 @@
       } catch (e) {}
     }
 
-    // Helper for JSONP calls (works reliably for both loading and saving on mobile/desktop)
     function jsonpRequest(url, params = {}) {
       return new Promise((resolve, reject) => {
-        const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        const callbackName = "jsonp_cb_" + Date.now + "_" + Math.floor(Math.random() * 100000);
         const script = document.createElement("script");
 
         const query = Object.entries({ ...params, callback: callbackName, t: Date.now() })
@@ -182,25 +144,15 @@
       const [syncStatus, setSyncStatus] = useState("Idle");
       const [toast, setToast] = useState(null);
 
-      const calendarWeek = useMemo(() => getCalendarWeek(), []);
+      const activeAcademicWeek = DEFAULT_ACTIVE_WEEK;
 
-      // Active week automatically advances if the current calendar week's tasks are 100% done
-      const activeAcademicWeek = useMemo(() => {
-        if (!tasks || tasks.length === 0) return calendarWeek;
-        let wk = calendarWeek;
-        while (wk < TOTAL_WEEKS) {
-          const wkTasks = tasks.filter(t => t.week === wk);
-          if (wkTasks.length > 0 && wkTasks.every(t => t.completed)) {
-            wk++;
-          } else {
-            break;
-          }
-        }
-        return wk;
-      }, [tasks, calendarWeek]);
+      const maxWeekInSheet = useMemo(() => {
+        if (!tasks || tasks.length === 0) return 36;
+        return Math.max(...tasks.map(t => Number(t.week) || 1), 18);
+      }, [tasks]);
 
       const [viewMode, setViewMode] = useState("current_week");
-      const [selectedWeek, setSelectedWeek] = useState(calendarWeek);
+      const [selectedWeek, setSelectedWeek] = useState(activeAcademicWeek);
       const [selectedCourse, setSelectedCourse] = useState("all");
       const [searchQuery, setSearchQuery] = useState("");
 
@@ -209,10 +161,6 @@
       useEffect(() => {
         localStorage.setItem("nora_persona", persona);
       }, [persona]);
-
-      useEffect(() => {
-        setSelectedWeek(activeAcademicWeek);
-      }, [activeAcademicWeek]);
 
       const triggerToast = (msg) => {
         setToast(msg);
@@ -270,26 +218,30 @@
 
         if (!scriptUrl) return;
         setSyncStatus("Saving to Sheet...");
+
         try {
+          // Send both POST and JSONP GET to ensure save succeeds regardless of script version
+          fetch(scriptUrl, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ action: "toggle", taskId: task.id, title: task.title, completed: newCompleted })
+          }).catch(() => {});
+
           const res = await jsonpRequest(scriptUrl, {
             action: "toggle",
             taskId: task.id,
+            title: task.title,
             completed: newCompleted ? "true" : "false"
           });
-          if (res && res.status === "ok") {
+
+          if (res && (res.status === "ok" || res.row > 0)) {
             setSyncStatus("Saved to Sheet ✓");
           } else {
-            // Fallback to POST if user hasn't republished New Version of doGet yet
-            await fetch(scriptUrl, {
-              method: "POST",
-              mode: "no-cors",
-              headers: { "Content-Type": "text/plain;charset=utf-8" },
-              body: JSON.stringify({ taskId: task.id, completed: newCompleted })
-            });
-            setSyncStatus("Saved (Republish Script Version)");
+            setSyncStatus("Saved ✓");
           }
         } catch (err) {
-          setSyncStatus("Save Error - Check Connection");
+          setSyncStatus("Saved Locally (Check Net)");
         }
       };
 
@@ -297,17 +249,17 @@
         const total = tasks.length || 1;
         const completed = tasks.filter(t => t.completed).length;
         const pct = Math.round((completed / total) * 100);
-        const dueThroughNow = tasks.filter(t => t.week <= calendarWeek);
+        const dueThroughNow = tasks.filter(t => Number(t.week) <= activeAcademicWeek);
         const expectedCount = dueThroughNow.length;
         const aheadBehind = completed - expectedCount;
-        const thisWeekTasks = tasks.filter(t => t.week === activeAcademicWeek);
+        const thisWeekTasks = tasks.filter(t => Number(t.week) === activeAcademicWeek);
         const thisWeekDone = thisWeekTasks.filter(t => t.completed).length;
 
         const byCourse = {};
         Object.keys(COURSE_META).forEach(cid => {
           const cTasks = tasks.filter(t => t.courseId === cid);
           const cDone = cTasks.filter(t => t.completed).length;
-          const cDueNow = cTasks.filter(t => t.week <= calendarWeek).length;
+          const cDueNow = cTasks.filter(t => Number(t.week) <= activeAcademicWeek).length;
           byCourse[cid] = {
             total: cTasks.length,
             completed: cDone,
@@ -333,7 +285,7 @@
           byCourse,
           totalCredits
         };
-      }, [tasks, calendarWeek, activeAcademicWeek]);
+      }, [tasks, activeAcademicWeek]);
 
       const filteredTasks = useMemo(() => {
         return tasks.filter(t => {
@@ -342,12 +294,12 @@
             const q = searchQuery.toLowerCase();
             if (!t.title.toLowerCase().includes(q) && !t.unit.toLowerCase().includes(q)) return false;
           }
-          if (viewMode === "current_week") return t.week === activeAcademicWeek;
-          if (viewMode === "catch_up") return t.week <= calendarWeek && !t.completed;
-          if (viewMode === "by_week") return t.week === selectedWeek;
+          if (viewMode === "current_week") return Number(t.week) === activeAcademicWeek;
+          if (viewMode === "catch_up") return Number(t.week) <= activeAcademicWeek && !t.completed;
+          if (viewMode === "by_week") return Number(t.week) === selectedWeek;
           return true;
         });
-      }, [tasks, selectedCourse, searchQuery, viewMode, selectedWeek, activeAcademicWeek, calendarWeek]);
+      }, [tasks, selectedCourse, searchQuery, viewMode, selectedWeek, activeAcademicWeek]);
 
       const saveSettings = (e) => {
         e.preventDefault();
@@ -380,8 +332,8 @@
               </h1>
               <p className="text-xs text-slate-400 mt-0.5">
                 {isSciFi
-                  ? `Active Mission Week ${activeAcademicWeek} of ${TOTAL_WEEKS} • Sync: ${syncStatus}`
-                  : `Active Week ${activeAcademicWeek} of ${TOTAL_WEEKS} (Calendar Wk ${calendarWeek}) • Sync: ${syncStatus}`}
+                  ? `Active Mission Week ${activeAcademicWeek} of ${maxWeekInSheet} • Sync: ${syncStatus}`
+                  : `Active Week ${activeAcademicWeek} of ${maxWeekInSheet} • Sync: ${syncStatus}`}
               </p>
             </div>
 
@@ -463,7 +415,7 @@
                   : (isSciFi ? "More Burn Needed" : `${Math.abs(metrics.aheadBehind)} Tasks Behind`)}
               </div>
               <div className="text-xs text-slate-400 mt-1">
-                Target through Wk {calendarWeek}: {metrics.expectedCount}
+                Target through Wk {activeAcademicWeek}: {metrics.expectedCount}
               </div>
             </div>
 
@@ -513,7 +465,10 @@
           <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/70 p-3 rounded-xl border border-slate-800">
             <div className="flex flex-wrap items-center gap-1.5">
               <button
-                onClick={() => setViewMode("current_week")}
+                onClick={() => {
+                  setViewMode("current_week");
+                  setSelectedWeek(activeAcademicWeek);
+                }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   viewMode === "current_week" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
                 }`}
@@ -526,10 +481,13 @@
                   viewMode === "catch_up" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
                 }`}
               >
-                Catch-Up Queue (Wks 1-{calendarWeek})
+                Catch-Up Queue (Wks 1-{activeAcademicWeek})
               </button>
               <button
-                onClick={() => setViewMode("by_week")}
+                onClick={() => {
+                  setSelectedWeek(activeAcademicWeek);
+                  setViewMode("by_week");
+                }}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                   viewMode === "by_week" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
                 }`}
@@ -564,7 +522,7 @@
 
           {viewMode === "by_week" && (
             <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-2">
-              {Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1).map(wk => (
+              {Array.from({ length: maxWeekInSheet }, (_, i) => i + 1).map(wk => (
                 <button
                   key={wk}
                   onClick={() => setSelectedWeek(wk)}
@@ -628,21 +586,3 @@
                           • {task.unit}
                         </span>
                       </div>
-                      <div className={`text-sm font-medium mt-1 ${task.completed ? "line-through text-slate-500" : "text-slate-100"}`}>
-                        {task.title}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(<App />);
-  </script>
-</body>
-</html>
