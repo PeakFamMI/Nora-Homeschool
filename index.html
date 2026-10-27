@@ -34,7 +34,61 @@
 
     const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqGlBTtPq0XwLFXDByPBVKVlUhy0iGLgs-HEjEyMd3ekO6uffPMgP-_3CD7644e3dE/exec";
     const TOTAL_WEEKS = 36;
-    const DEFAULT_ACTIVE_WEEK = 7;
+
+    const WEEK_START_DATES = [
+      { week: 1,  start: "2026-09-07" },
+      { week: 2,  start: "2026-09-14" },
+      { week: 3,  start: "2026-09-21" },
+      { week: 4,  start: "2026-09-28" },
+      { week: 5,  start: "2026-10-05" },
+      { week: 6,  start: "2026-10-12" },
+      { week: 7,  start: "2026-10-19" },
+      { week: 8,  start: "2026-10-26" },
+      { week: 9,  start: "2026-11-02" },
+      { week: 10, start: "2026-11-09" },
+      { week: 11, start: "2026-11-16" },
+      { week: 12, start: "2026-11-23" },
+      { week: 13, start: "2026-11-30" },
+      { week: 14, start: "2026-12-07" },
+      { week: 15, start: "2026-12-14" },
+      { week: 16, start: "2027-01-04" },
+      { week: 17, start: "2027-01-11" },
+      { week: 18, start: "2027-01-18" },
+      { week: 19, start: "2027-01-25" },
+      { week: 20, start: "2027-02-01" },
+      { week: 21, start: "2027-02-08" },
+      { week: 22, start: "2027-02-15" },
+      { week: 23, start: "2027-02-22" },
+      { week: 24, start: "2027-03-01" },
+      { week: 25, start: "2027-03-08" },
+      { week: 26, start: "2027-03-15" },
+      { week: 27, start: "2027-03-22" },
+      { week: 28, start: "2027-04-05" },
+      { week: 29, start: "2027-04-12" },
+      { week: 30, start: "2027-04-19" },
+      { week: 31, start: "2027-04-26" },
+      { week: 32, start: "2027-05-03" },
+      { week: 33, start: "2027-05-10" },
+      { week: 34, start: "2027-05-17" },
+      { week: 35, start: "2027-05-24" },
+      { week: 36, start: "2027-05-31" }
+    ];
+
+    function getCalendarWeek() {
+      const now = new Date();
+      const todayStr =
+        now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, "0") + "-" +
+        String(now.getDate()).padStart(2, "0");
+
+      let currentWk = 1;
+      for (let i = 0; i < WEEK_START_DATES.length; i++) {
+        if (todayStr >= WEEK_START_DATES[i].start) {
+          currentWk = WEEK_START_DATES[i].week;
+        }
+      }
+      return currentWk;
+    }
 
     const COURSE_META = {
       english9: {
@@ -101,7 +155,7 @@
 
     function jsonpRequest(url, params = {}) {
       return new Promise((resolve, reject) => {
-        const callbackName = "jsonp_cb_" + Date.now + "_" + Math.floor(Math.random() * 100000);
+        const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
         const script = document.createElement("script");
 
         const query = Object.entries({ ...params, callback: callbackName, t: Date.now() })
@@ -144,12 +198,26 @@
       const [syncStatus, setSyncStatus] = useState("Idle");
       const [toast, setToast] = useState(null);
 
-      const activeAcademicWeek = DEFAULT_ACTIVE_WEEK;
+      const calendarWeek = useMemo(() => getCalendarWeek(), []);
 
       const maxWeekInSheet = useMemo(() => {
         if (!tasks || tasks.length === 0) return 36;
         return Math.max(...tasks.map(t => Number(t.week) || 1), 18);
       }, [tasks]);
+
+      const activeAcademicWeek = useMemo(() => {
+        if (!tasks || tasks.length === 0) return calendarWeek;
+        let wk = calendarWeek;
+        while (wk < maxWeekInSheet) {
+          const wkTasks = tasks.filter(t => Number(t.week) === wk);
+          if (wkTasks.length > 0 && wkTasks.every(t => t.completed)) {
+            wk++;
+          } else {
+            break;
+          }
+        }
+        return wk;
+      }, [tasks, calendarWeek, maxWeekInSheet]);
 
       const [viewMode, setViewMode] = useState("current_week");
       const [selectedWeek, setSelectedWeek] = useState(activeAcademicWeek);
@@ -161,6 +229,10 @@
       useEffect(() => {
         localStorage.setItem("nora_persona", persona);
       }, [persona]);
+
+      useEffect(() => {
+        setSelectedWeek(activeAcademicWeek);
+      }, [activeAcademicWeek]);
 
       const triggerToast = (msg) => {
         setToast(msg);
@@ -220,7 +292,6 @@
         setSyncStatus("Saving to Sheet...");
 
         try {
-          // Send both POST and JSONP GET to ensure save succeeds regardless of script version
           fetch(scriptUrl, {
             method: "POST",
             mode: "no-cors",
@@ -249,7 +320,7 @@
         const total = tasks.length || 1;
         const completed = tasks.filter(t => t.completed).length;
         const pct = Math.round((completed / total) * 100);
-        const dueThroughNow = tasks.filter(t => Number(t.week) <= activeAcademicWeek);
+        const dueThroughNow = tasks.filter(t => Number(t.week) <= calendarWeek);
         const expectedCount = dueThroughNow.length;
         const aheadBehind = completed - expectedCount;
         const thisWeekTasks = tasks.filter(t => Number(t.week) === activeAcademicWeek);
@@ -259,7 +330,7 @@
         Object.keys(COURSE_META).forEach(cid => {
           const cTasks = tasks.filter(t => t.courseId === cid);
           const cDone = cTasks.filter(t => t.completed).length;
-          const cDueNow = cTasks.filter(t => Number(t.week) <= activeAcademicWeek).length;
+          const cDueNow = cTasks.filter(t => Number(t.week) <= calendarWeek).length;
           byCourse[cid] = {
             total: cTasks.length,
             completed: cDone,
@@ -285,7 +356,7 @@
           byCourse,
           totalCredits
         };
-      }, [tasks, activeAcademicWeek]);
+      }, [tasks, calendarWeek, activeAcademicWeek]);
 
       const filteredTasks = useMemo(() => {
         return tasks.filter(t => {
@@ -295,11 +366,11 @@
             if (!t.title.toLowerCase().includes(q) && !t.unit.toLowerCase().includes(q)) return false;
           }
           if (viewMode === "current_week") return Number(t.week) === activeAcademicWeek;
-          if (viewMode === "catch_up") return Number(t.week) <= activeAcademicWeek && !t.completed;
+          if (viewMode === "catch_up") return Number(t.week) <= calendarWeek && !t.completed;
           if (viewMode === "by_week") return Number(t.week) === selectedWeek;
           return true;
         });
-      }, [tasks, selectedCourse, searchQuery, viewMode, selectedWeek, activeAcademicWeek]);
+      }, [tasks, selectedCourse, searchQuery, viewMode, selectedWeek, activeAcademicWeek, calendarWeek]);
 
       const saveSettings = (e) => {
         e.preventDefault();
@@ -415,7 +486,7 @@
                   : (isSciFi ? "More Burn Needed" : `${Math.abs(metrics.aheadBehind)} Tasks Behind`)}
               </div>
               <div className="text-xs text-slate-400 mt-1">
-                Target through Wk {activeAcademicWeek}: {metrics.expectedCount}
+                Target through Wk {calendarWeek}: {metrics.expectedCount}
               </div>
             </div>
 
@@ -481,7 +552,7 @@
                   viewMode === "catch_up" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
                 }`}
               >
-                Catch-Up Queue (Wks 1-{activeAcademicWeek})
+                Catch-Up Queue (Wks 1-{calendarWeek})
               </button>
               <button
                 onClick={() => {
