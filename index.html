@@ -1,498 +1,648 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nora Peak // Academic Task Tracker</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Nora Grade 9 Tracker // Orbital Log</title>
+  <meta name="theme-color" content="#090d16" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    :root {
-      --bg: #0b0f19;
-      --card-bg: #111827;
-      --card-border: #1f2937;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --accent: #f59e0b;
-      --accent-hover: #d97706;
-      --success: #10b981;
-      
-      --c-english: #f97316;
-      --c-geometry: #38bdf8;
-      --c-biology: #10b981;
-      --c-history: #a855f7;
-      --c-civics: #ec4899;
+    body {
+      background-color: #090d16;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
-
-    body.phm-mode {
-      --bg: #050b14;
-      --card-bg: #0b1526;
-      --card-border: #1e3a5f;
-      --accent: #00e5ff;
-      --accent-hover: #00b4d8;
+    .overdrive-glow {
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 24px; min-height: 100vh; transition: background-color 0.3s; }
-    .container { max-width: 1100px; margin: 0 auto; }
-
-    header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-    .badge { color: var(--accent); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
-    .badge::before { content: ""; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
-    h1 { font-size: 1.8rem; font-weight: 800; }
-    .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 4px; }
-
-    .theme-toggle-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text);
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.2s;
-    }
-    .theme-toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 20px; }
-    .metric-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px; }
-    .metric-title { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
-    .metric-value { font-size: 1.6rem; font-weight: 800; display: flex; align-items: baseline; gap: 6px; }
-    .metric-sub { font-size: 0.85rem; color: var(--text-muted); font-weight: normal; }
-    .metric-footer { font-size: 0.8rem; color: var(--text-muted); margin-top: 8px; }
-
-    .progress-bar-bg { width: 100%; height: 6px; background: #1f2937; border-radius: 3px; overflow: hidden; margin-top: 10px; }
-    .progress-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
-
-    .courses-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .course-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px; }
-    .course-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-    .course-name { font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-    .course-percent { font-size: 0.85rem; font-weight: 700; }
-    .course-sub { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .course-footer { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; }
-
-    .nav-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
-    .nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-    .tab-btn { background: #1f2937; color: var(--text); border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
-    .tab-btn.active { background: var(--accent); color: #000; }
-    .search-input { background: #111827; border: 1px solid var(--card-border); color: var(--text); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; min-width: 200px; }
-
-    .week-scroller { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; scrollbar-width: thin; }
-    .week-pill { background: #111827; border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
-    .week-pill:hover { border-color: var(--accent); }
-    .week-pill.active { background: var(--accent); color: #000; border-color: var(--accent); }
-    .week-pill.current { outline: 1px dashed var(--accent); }
-
-    .task-list { display: flex; flex-direction: column; gap: 10px; }
-    .task-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; gap: 14px; }
-    .task-checkbox { margin-top: 3px; width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
-    .task-content { flex: 1; }
-    .task-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; }
-    .badge-course { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; }
-    .task-title { font-size: 0.95rem; font-weight: 600; }
-    .task-card.completed .task-title { text-decoration: line-through; color: var(--text-muted); }
-
-    .badge-english { background: rgba(249, 115, 22, 0.15); color: var(--c-english); }
-    .badge-geometry { background: rgba(56, 189, 248, 0.15); color: var(--c-geometry); }
-    .badge-biology { background: rgba(16, 185, 129, 0.15); color: var(--c-biology); }
-    .badge-history { background: rgba(168, 85, 247, 0.15); color: var(--c-history); }
-    .badge-civics { background: rgba(236, 72, 153, 0.15); color: var(--c-civics); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
   </style>
 </head>
-<body>
+<body class="min-h-screen selection:bg-amber-500 selection:text-slate-950">
+  <div id="root"></div>
 
-<div class="container">
-  <header>
-    <div>
-      <div class="badge" id="headerBadge">GRADE 9 ACADEMIC COMPETENCY RECORD</div>
-      <h1 id="headerTitle">Nora Peak // 2026–2027 Curriculum</h1>
-      <div class="subtitle" id="headerSubtitle">Loading academic progress...</div>
-    </div>
-    <button class="theme-toggle-btn" onclick="toggleTheme()">
-      <span id="themeToggleIcon">🚀</span> <span id="themeToggleText">Project Hail Mary Mode</span>
-    </button>
-  </header>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
 
-  <section class="metrics-grid">
-    <div class="metric-card">
-      <div class="metric-title" id="mTotalLabel">Total Tasks Completed</div>
-      <div class="metric-value"><span id="mCompleted">0</span> <span class="metric-sub">/ <span id="mTotal">0</span></span></div>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="mProgressFill" style="background: var(--success); width: 0%;"></div></div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-title"><span id="currentWkLabel">Current Week</span> Progress</div>
-      <div class="metric-value"><span id="mWkCompleted">0</span> <span class="metric-sub">/ <span id="mWkTotal">0</span></span></div>
-      <div class="metric-footer" id="mWkRemaining">0 remaining this week</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-title" id="mPacingLabel">Pacing vs. Schedule</div>
-      <div class="metric-value" id="mPacingVal">On Track</div>
-      <div class="metric-footer" id="mPacingTarget">Target: 0</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-title" id="mCreditsLabel">Credits Accrued (Full Year)</div>
-      <div class="metric-value"><span id="mCredits">0.00</span> <span class="metric-sub">/ 5.00 Cr</span></div>
-      <div class="metric-footer" id="mCreditsFooter">1.00 credit per course (Civics 0.50)</div>
-    </div>
-  </section>
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyqGlBTtPq0XwLFXDByPBVKVlUhy0iGLgs-HEjEyMd3ekO6uffPMgP-_3CD7644e3dE/exec"; 
+    const TOTAL_WEEKS = 18;
 
-  <section class="courses-grid" id="courseCardsGrid"></section>
+    // Exact Monday start dates for each of the 18 academic weeks
+    const WEEK_START_DATES = [
+      { week: 1,  start: "2026-09-07" },
+      { week: 2,  start: "2026-09-14" },
+      { week: 3,  start: "2026-09-21" },
+      { week: 4,  start: "2026-09-28" },
+      { week: 5,  start: "2026-10-05" },
+      { week: 6,  start: "2026-10-12" },
+      { week: 7,  start: "2026-10-19" },
+      { week: 8,  start: "2026-10-26" },
+      { week: 9,  start: "2026-11-02" },
+      { week: 10, start: "2026-11-09" },
+      { week: 11, start: "2026-11-16" },
+      { week: 12, start: "2026-11-23" },
+      { week: 13, start: "2026-11-30" },
+      { week: 14, start: "2026-12-07" },
+      { week: 15, start: "2026-12-14" },
+      { week: 16, start: "2027-01-04" },
+      { week: 17, start: "2027-01-11" },
+      { week: 18, start: "2027-01-18" }
+    ];
 
-  <div class="nav-bar">
-    <div class="nav-tabs">
-      <button class="tab-btn active" id="btnCurrentWk" onclick="setView('current')">This Week</button>
-      <button class="tab-btn" id="btnCatchUp" onclick="setView('catchup')">Catch-Up Queue</button>
-      <button class="tab-btn" id="btnBrowse" onclick="setView('browse')">Browse by Week</button>
-      <button class="tab-btn" id="btnAll" onclick="setView('all')">All Tasks</button>
-    </div>
-    <input type="text" class="search-input" id="searchBox" placeholder="Search lessons..." oninput="handleSearch()">
-  </div>
+    function getCalendarWeek() {
+      const now = new Date();
+      const todayStr =
+        now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, "0") + "-" +
+        String(now.getDate()).padStart(2, "0");
 
-  <div class="week-scroller" id="weekPills" style="display: none;"></div>
-
-  <div class="task-list" id="taskListContainer">
-    <div style="padding: 30px; text-align: center; color: var(--text-muted);">Syncing task records with Google Sheets...</div>
-  </div>
-</div>
-
-<script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbyqGlBTtPq0XwLFXDByPBVKVlUhy0iGLgs-HEjEyMd3ekO6uffPMgP-_3CD7644e3dE/exec";
-  const TOTAL_WEEKS = 36;
-  const CURRENT_WEEK = 7;
-
-  const WEEK_DATES = [
-    "Sep 7 - Sep 11", "Sep 14 - Sep 18", "Sep 21 - Sep 25", "Sep 28 - Oct 2",
-    "Oct 5 - Oct 9", "Oct 12 - Oct 16", "Oct 19 - Oct 23", "Oct 26 - Oct 30",
-    "Nov 2 - Nov 6", "Nov 9 - Nov 13", "Nov 16 - Nov 20", "Nov 23 - Nov 27",
-    "Nov 30 - Dec 4", "Dec 7 - Dec 11", "Dec 14 - Dec 18", "Jan 4 - Jan 8",
-    "Jan 11 - Jan 15", "Jan 18 - Jan 22", "Jan 25 - Jan 29", "Feb 1 - Feb 5",
-    "Feb 8 - Feb 12", "Feb 15 - Feb 19", "Feb 22 - Feb 26", "Mar 1 - Mar 5",
-    "Mar 8 - Mar 12", "Mar 15 - Mar 19", "Mar 22 - Mar 26", "Apr 5 - Apr 9",
-    "Apr 12 - Apr 16", "Apr 19 - Apr 23", "Apr 26 - Apr 30", "May 3 - May 7",
-    "May 10 - May 14", "May 17 - May 21", "May 24 - May 28", "Jun 1 - Jun 17"
-  ];
-
-  const COURSES = {
-    english9: {
-      emoji: "📖",
-      name: "English 9",
-      phmName: "Xenolinguistics & Comms",
-      sub: "The Good & The Beautiful (HS 1)",
-      class: "badge-english",
-      color: "var(--c-english)"
-    },
-    geometry: {
-      emoji: "📐",
-      name: "Geometry",
-      phmName: "Orbital Mechanics & Geometry",
-      sub: "CK-12 Interactive Geometry 2.0",
-      class: "badge-geometry",
-      color: "var(--c-geometry)"
-    },
-    biology: {
-      emoji: "🧬",
-      name: "Biology (with Lab)",
-      phmName: "Astrophage Cellular Biology",
-      sub: "CK-12 High School Biology",
-      class: "badge-biology",
-      color: "var(--c-biology)"
-    },
-    ushistory: {
-      emoji: "📜",
-      name: "US History",
-      phmName: "Earth Historical Archives",
-      sub: "EPISD / CK-12 US History",
-      class: "badge-history",
-      color: "var(--c-history)"
-    },
-    civics: {
-      emoji: "🏛️",
-      name: "Civics / US Govt",
-      phmName: "Planetary Systems Governance",
-      sub: "EPISD / CK-12 US Government",
-      class: "badge-civics",
-      color: "var(--c-civics)"
-    }
-  };
-
-  let isPhmMode = localStorage.getItem("phm_mode") === "true";
-  let allTasks = [];
-  let currentView = 'current';
-  let selectedBrowseWeek = CURRENT_WEEK;
-
-  function toggleTheme() {
-    isPhmMode = !isPhmMode;
-    localStorage.setItem("phm_mode", isPhmMode);
-    applyTheme();
-    renderAll();
-  }
-
-  function applyTheme() {
-    if (isPhmMode) {
-      document.body.classList.add("phm-mode");
-      document.getElementById("themeToggleIcon").innerText = "📘";
-      document.getElementById("themeToggleText").innerText = "Standard English View";
-      document.getElementById("headerBadge").innerText = "PROJECT HAIL MARY // ORBITAL MISSION LOG";
-      document.getElementById("headerTitle").innerText = "Dr. Grace // Nora Peak Mission Directive";
-      document.getElementById("mTotalLabel").innerText = "Astrophage Protocols Cleared";
-      document.getElementById("mPacingLabel").innerText = "Trajectory Variance";
-      document.getElementById("mCreditsLabel").innerText = "Mission Readiness Units";
-      document.getElementById("mCreditsFooter").innerText = "1.00 MRU per core discipline";
-    } else {
-      document.body.classList.remove("phm-mode");
-      document.getElementById("themeToggleIcon").innerText = "🚀";
-      document.getElementById("themeToggleText").innerText = "Project Hail Mary Mode";
-      document.getElementById("headerBadge").innerText = "GRADE 9 ACADEMIC COMPETENCY RECORD";
-      document.getElementById("headerTitle").innerText = "Nora Peak // 2026–2027 Curriculum";
-      document.getElementById("mTotalLabel").innerText = "Total Tasks Completed";
-      document.getElementById("mPacingLabel").innerText = "Pacing vs. Schedule";
-      document.getElementById("mCreditsLabel").innerText = "Credits Accrued (Full Year)";
-      document.getElementById("mCreditsFooter").innerText = "1.00 credit per course (Civics 0.50)";
-    }
-  }
-
-  function normalizeTask(raw) {
-    const id = String(raw.task_id || raw.id || "");
-    const title = String(raw.task_title || raw.title || raw.task || raw.name || "Untitled Task").trim();
-    const unit = String(raw.unit || "").trim();
-    const rawCourseStr = String(raw.course_id || raw.course_name || raw.course || raw.subject || "").toLowerCase();
-    const combined = (rawCourseStr + " " + unit + " " + title + " " + id).toLowerCase();
-
-    let courseKey = "";
-    if (combined.includes("geo") || combined.includes("solid") || combined.includes("plane") || combined.includes("transform") || combined.includes("angle") || combined.includes("triangle")) {
-      courseKey = "geometry";
-    } else if (combined.includes("bio") || combined.includes("cell") || combined.includes("dna") || combined.includes("mitosis") || combined.includes("plant") || combined.includes("organism")) {
-      courseKey = "biology";
-    } else if (combined.includes("eng") || combined.includes("good") || combined.includes("david") || combined.includes("proctored unit") || combined.includes("vocabulary") || combined.includes("writing:") || combined.includes("reading:")) {
-      courseKey = "english9";
-    } else if (combined.includes("hist") || combined.includes("reforming") || combined.includes("gilded") || combined.includes("civil war") || combined.includes("progressive")) {
-      courseKey = "ushistory";
-    } else if (combined.includes("civ") || combined.includes("gov") || combined.includes("constitution") || combined.includes("federalism") || combined.includes("branch") || combined.includes("amendment")) {
-      courseKey = "civics";
-    } else {
-      courseKey = "geometry";
-    }
-
-    const week = parseInt(raw.week, 10) || 1;
-    const weekDates = raw.week_dates || raw.dates || WEEK_DATES[week - 1] || "";
-    const completed = !!(raw.completed === true || raw.completed === "TRUE" || raw.completed === 1 || raw.done);
-    const dateCompleted = raw.date_completed || "";
-
-    return { id, course_id: courseKey, title, week, week_dates: weekDates, unit, completed, date_completed: dateCompleted };
-  }
-
-  async function init() {
-    applyTheme();
-    buildWeekPills();
-    document.getElementById("btnCurrentWk").innerText = `This Week (Wk ${CURRENT_WEEK})`;
-    document.getElementById("currentWkLabel").innerText = `Week ${CURRENT_WEEK}`;
-    document.getElementById("headerSubtitle").innerText = `Academic Week ${CURRENT_WEEK} of ${TOTAL_WEEKS} (Term Start: Sept 7, 2026) • Sync: Synced`;
-
-    try {
-      const res = await fetch(`${API_URL}?t=${Date.now()}`);
-      const data = await res.json();
-      allTasks = (data.tasks || []).map(normalizeTask);
-      renderAll();
-    } catch (err) {
-      document.getElementById("taskListContainer").innerHTML = `<div style="padding: 30px; text-align: center; color: #ef4444;">Error syncing records. Check connection or Apps Script deployment.</div>`;
-    }
-  }
-
-  function buildWeekPills() {
-    const scroller = document.getElementById("weekPills");
-    scroller.innerHTML = "";
-    for (let w = 1; w <= TOTAL_WEEKS; w++) {
-      const pill = document.createElement("button");
-      pill.className = `week-pill ${w === CURRENT_WEEK ? 'current' : ''} ${w === selectedBrowseWeek ? 'active' : ''}`;
-      pill.innerText = `Wk ${w}`;
-      pill.onclick = () => {
-        selectedBrowseWeek = w;
-        document.querySelectorAll(".week-pill").forEach(p => p.classList.remove("active"));
-        pill.classList.add("active");
-        renderTaskList();
-      };
-      scroller.appendChild(pill);
-    }
-  }
-
-  function setView(view) {
-    currentView = view;
-    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-    document.getElementById("weekPills").style.display = view === 'browse' ? 'flex' : 'none';
-
-    if (view === 'current') document.getElementById("btnCurrentWk").classList.add("active");
-    if (view === 'catchup') document.getElementById("btnCatchUp").classList.add("active");
-    if (view === 'browse') document.getElementById("btnBrowse").classList.add("active");
-    if (view === 'all') document.getElementById("btnAll").classList.add("active");
-
-    renderTaskList();
-  }
-
-  function renderAll() {
-    renderTopMetrics();
-    renderCourseCards();
-    renderTaskList();
-  }
-
-  function renderTopMetrics() {
-    const total = allTasks.length;
-    const completed = allTasks.filter(t => t.completed).length;
-    document.getElementById("mTotal").innerText = total;
-    document.getElementById("mCompleted").innerText = completed;
-    document.getElementById("mProgressFill").style.width = total ? `${(completed / total) * 100}%` : '0%';
-
-    const currentWkTasks = allTasks.filter(t => t.week === CURRENT_WEEK);
-    const currentWkDone = currentWkTasks.filter(t => t.completed).length;
-    document.getElementById("mWkTotal").innerText = currentWkTasks.length;
-    document.getElementById("mWkCompleted").innerText = currentWkDone;
-    document.getElementById("mWkRemaining").innerText = `${currentWkTasks.length - currentWkDone} remaining this week`;
-
-    const targetThroughCurrent = allTasks.filter(t => t.week <= CURRENT_WEEK).length;
-    const behind = targetThroughCurrent - completed;
-    const pacingEl = document.getElementById("mPacingVal");
-
-    if (behind > 0) {
-      pacingEl.innerText = isPhmMode ? `${behind} Behind Target` : `${behind} Tasks Behind`;
-      pacingEl.style.color = "#f59e0b";
-    } else {
-      pacingEl.innerText = isPhmMode ? "Nominal Trajectory" : "On Track";
-      pacingEl.style.color = "#10b981";
-    }
-    document.getElementById("mPacingTarget").innerText = `Target through Wk ${CURRENT_WEEK}: ${targetThroughCurrent}`;
-
-    const credits = total ? ((completed / total) * 5.0).toFixed(2) : "0.00";
-    document.getElementById("mCredits").innerText = credits;
-  }
-
-  function renderCourseCards() {
-    const container = document.getElementById("courseCardsGrid");
-    container.innerHTML = "";
-
-    const coreKeys = ["english9", "geometry", "biology", "ushistory", "civics"];
-    const courseStats = {};
-    coreKeys.forEach(k => {
-      courseStats[k] = { total: 0, done: 0, target: 0 };
-    });
-
-    allTasks.forEach(t => {
-      const k = t.course_id;
-      if (courseStats[k]) {
-        courseStats[k].total++;
-        if (t.completed) courseStats[k].done++;
-        if (t.week <= CURRENT_WEEK) courseStats[k].target++;
+      let currentWk = 1;
+      for (let i = 0; i < WEEK_START_DATES.length; i++) {
+        if (todayStr >= WEEK_START_DATES[i].start) {
+          currentWk = WEEK_START_DATES[i].week;
+        }
       }
-    });
-
-    coreKeys.forEach(k => {
-      const meta = COURSES[k];
-      const stat = courseStats[k];
-      const pct = stat.total ? Math.round((stat.done / stat.total) * 100) : 0;
-      const paceDiff = stat.done - stat.target;
-      const paceLabel = paceDiff >= 0 ? "On pace" : `${paceDiff} pace`;
-      const displayName = isPhmMode ? meta.phmName : meta.name;
-
-      const card = document.createElement("div");
-      card.className = "course-card";
-      card.innerHTML = `
-        <div class="course-header">
-          <span class="course-name">${meta.emoji} ${displayName}</span>
-          <span class="course-percent">${pct}%</span>
-        </div>
-        <div class="course-sub">${meta.sub}</div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" style="width: ${pct}%; background: ${meta.color};"></div>
-        </div>
-        <div class="course-footer">
-          <span>${stat.done}/${stat.total} done</span>
-          <span style="color: ${paceDiff < 0 ? '#f59e0b' : '#10b981'}">${paceLabel}</span>
-        </div>
-      `;
-      container.appendChild(card);
-    });
-  }
-
-  function renderTaskList() {
-    const container = document.getElementById("taskListContainer");
-    const search = document.getElementById("searchBox").value.toLowerCase();
-    let filtered = [];
-
-    if (search.trim()) {
-      filtered = allTasks.filter(t => 
-        t.title.toLowerCase().includes(search) ||
-        t.unit.toLowerCase().includes(search) ||
-        COURSES[t.course_id].name.toLowerCase().includes(search)
-      );
-    } else if (currentView === 'current') {
-      filtered = allTasks.filter(t => t.week === CURRENT_WEEK);
-    } else if (currentView === 'catchup') {
-      filtered = allTasks.filter(t => t.week <= CURRENT_WEEK && !t.completed);
-    } else if (currentView === 'browse') {
-      filtered = allTasks.filter(t => t.week === selectedBrowseWeek);
-    } else {
-      filtered = allTasks;
+      return currentWk;
     }
 
-    if (!filtered.length) {
-      container.innerHTML = `<div style="padding: 30px; text-align: center; color: var(--text-muted);">No tasks found for this view.</div>`;
-      return;
+    const COURSE_META = {
+      english9: {
+        id: "english9",
+        name: "English 9",
+        sciFiName: "Xenolinguistics & Eridian Comms",
+        curriculum: "The Good & The Beautiful (HS 1)",
+        color: "from-amber-500 to-orange-500",
+        badge: "bg-amber-500/15 text-amber-300 border-amber-500/30"
+      },
+      geometry: {
+        id: "geometry",
+        name: "Geometry",
+        sciFiName: "Astrogation & Orbital Vectors",
+        curriculum: "CK-12 Interactive Geometry 2.0",
+        color: "from-cyan-500 to-blue-500",
+        badge: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+      },
+      biology: {
+        id: "biology",
+        name: "Biology (with Lab)",
+        sciFiName: "Astrophage & Exobiology Lab",
+        curriculum: "CK-12 High School Biology",
+        color: "from-emerald-500 to-teal-500",
+        badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+      },
+      ushistory: {
+        id: "ushistory",
+        name: "US History",
+        sciFiName: "Terran Historical Archives",
+        curriculum: "EPISD / CK-12 US History",
+        color: "from-purple-500 to-indigo-500",
+        badge: "bg-purple-500/15 text-purple-300 border-purple-500/30"
+      },
+      civics: {
+        id: "civics",
+        name: "Civics / US Govt",
+        sciFiName: "Project Hail Mary Command Protocol",
+        curriculum: "EPISD / CK-12 US Government",
+        color: "from-rose-500 to-pink-500",
+        badge: "bg-rose-500/15 text-rose-300 border-rose-500/30"
+      }
+    };
+
+    function playChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.14);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.22);
+      } catch (e) {}
     }
 
-    container.innerHTML = filtered.map(t => {
-      const meta = COURSES[t.course_id] || COURSES.civics;
-      const isDone = !!t.completed;
-      const displayName = isPhmMode ? meta.phmName : meta.name;
-      return `
-        <div class="task-card ${isDone ? 'completed' : ''}" id="card_${t.id}">
-          <input type="checkbox" class="task-checkbox" ${isDone ? 'checked' : ''} onchange="toggleTask('${t.id}', this.checked)">
-          <div class="task-content">
-            <div class="task-meta">
-              <span class="badge-course ${meta.class}">${meta.emoji} ${displayName}</span>
-              <span>Week ${t.week} (${t.week_dates})</span>
-              ${t.unit ? `<span>• ${t.unit}</span>` : ''}
+    // Helper for JSONP calls (works reliably for both loading and saving on mobile/desktop)
+    function jsonpRequest(url, params = {}) {
+      return new Promise((resolve, reject) => {
+        const callbackName = "jsonp_cb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        const script = document.createElement("script");
+
+        const query = Object.entries({ ...params, callback: callbackName, t: Date.now() })
+          .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+          .join("&");
+
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error("Request timed out"));
+        }, 12000);
+
+        function cleanup() {
+          clearTimeout(timer);
+          delete window[callbackName];
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[callbackName] = (data) => {
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = () => {
+          cleanup();
+          reject(new Error("Network error"));
+        };
+
+        const sep = url.includes("?") ? "&" : "?";
+        script.src = `${url}${sep}${query}`;
+        document.body.appendChild(script);
+      });
+    }
+
+    function App() {
+      const [persona, setPersona] = useState(() => localStorage.getItem("nora_persona") || "hailmary");
+      const [scriptUrl, setScriptUrl] = useState(() => localStorage.getItem("nora_script_url") || DEFAULT_SCRIPT_URL);
+      const [showSettings, setShowSettings] = useState(false);
+      const [tasks, setTasks] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [syncStatus, setSyncStatus] = useState("Idle");
+      const [toast, setToast] = useState(null);
+
+      const calendarWeek = useMemo(() => getCalendarWeek(), []);
+
+      // Active week automatically advances if the current calendar week's tasks are 100% done
+      const activeAcademicWeek = useMemo(() => {
+        if (!tasks || tasks.length === 0) return calendarWeek;
+        let wk = calendarWeek;
+        while (wk < TOTAL_WEEKS) {
+          const wkTasks = tasks.filter(t => t.week === wk);
+          if (wkTasks.length > 0 && wkTasks.every(t => t.completed)) {
+            wk++;
+          } else {
+            break;
+          }
+        }
+        return wk;
+      }, [tasks, calendarWeek]);
+
+      const [viewMode, setViewMode] = useState("current_week");
+      const [selectedWeek, setSelectedWeek] = useState(calendarWeek);
+      const [selectedCourse, setSelectedCourse] = useState("all");
+      const [searchQuery, setSearchQuery] = useState("");
+
+      const isSciFi = persona === "hailmary";
+
+      useEffect(() => {
+        localStorage.setItem("nora_persona", persona);
+      }, [persona]);
+
+      useEffect(() => {
+        setSelectedWeek(activeAcademicWeek);
+      }, [activeAcademicWeek]);
+
+      const triggerToast = (msg) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 3000);
+      };
+
+      const fetchTasks = async (urlToUse = scriptUrl) => {
+        if (!urlToUse) return;
+        setLoading(true);
+        setSyncStatus("Syncing...");
+        try {
+          const data = await jsonpRequest(urlToUse);
+          setLoading(false);
+          if (data && data.status === "ok" && Array.isArray(data.tasks)) {
+            setTasks(data.tasks);
+            localStorage.setItem("nora_cached_tasks", JSON.stringify(data.tasks));
+            setSyncStatus("Synced ✓");
+          } else {
+            setSyncStatus("Check Sheet Script");
+          }
+        } catch (err) {
+          setLoading(false);
+          setSyncStatus("Offline (Cached)");
+          const cached = localStorage.getItem("nora_cached_tasks");
+          if (cached) {
+            try { setTasks(JSON.parse(cached)); } catch (e) {}
+          }
+        }
+      };
+
+      useEffect(() => {
+        const cached = localStorage.getItem("nora_cached_tasks");
+        if (cached) {
+          try { setTasks(JSON.parse(cached)); } catch (e) {}
+        }
+        fetchTasks(scriptUrl);
+      }, []);
+
+      const toggleTask = async (task) => {
+        const newCompleted = !task.completed;
+        const updatedTasks = tasks.map(t => t.id === task.id ? { ...t, completed: newCompleted } : t);
+        setTasks(updatedTasks);
+        localStorage.setItem("nora_cached_tasks", JSON.stringify(updatedTasks));
+
+        if (newCompleted) {
+          playChime();
+          const quotes = [
+            "Amaze! Amaze! Amaze! Task complete!",
+            "Fist my bump! Astrophage reserve increased!",
+            "Good! Proud! Trajectory nominal, Question?",
+            "Engine burn confirmed! Saving Earth and Erid!"
+          ];
+          triggerToast(isSciFi ? quotes[Math.floor(Math.random() * quotes.length)] : `Completed: ${task.title}`);
+        }
+
+        if (!scriptUrl) return;
+        setSyncStatus("Saving to Sheet...");
+        try {
+          const res = await jsonpRequest(scriptUrl, {
+            action: "toggle",
+            taskId: task.id,
+            completed: newCompleted ? "true" : "false"
+          });
+          if (res && res.status === "ok") {
+            setSyncStatus("Saved to Sheet ✓");
+          } else {
+            // Fallback to POST if user hasn't republished New Version of doGet yet
+            await fetch(scriptUrl, {
+              method: "POST",
+              mode: "no-cors",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify({ taskId: task.id, completed: newCompleted })
+            });
+            setSyncStatus("Saved (Republish Script Version)");
+          }
+        } catch (err) {
+          setSyncStatus("Save Error - Check Connection");
+        }
+      };
+
+      const metrics = useMemo(() => {
+        const total = tasks.length || 1;
+        const completed = tasks.filter(t => t.completed).length;
+        const pct = Math.round((completed / total) * 100);
+        const dueThroughNow = tasks.filter(t => t.week <= calendarWeek);
+        const expectedCount = dueThroughNow.length;
+        const aheadBehind = completed - expectedCount;
+        const thisWeekTasks = tasks.filter(t => t.week === activeAcademicWeek);
+        const thisWeekDone = thisWeekTasks.filter(t => t.completed).length;
+
+        const byCourse = {};
+        Object.keys(COURSE_META).forEach(cid => {
+          const cTasks = tasks.filter(t => t.courseId === cid);
+          const cDone = cTasks.filter(t => t.completed).length;
+          const cDueNow = cTasks.filter(t => t.week <= calendarWeek).length;
+          byCourse[cid] = {
+            total: cTasks.length,
+            completed: cDone,
+            pct: cTasks.length ? Math.round((cDone / cTasks.length) * 100) : 0,
+            dueNow: cDueNow,
+            delta: cDone - cDueNow,
+            creditsAccrued: cTasks.length ? ((cDone / cTasks.length) * 0.5).toFixed(2) : "0.00"
+          };
+        });
+
+        const totalCredits = Object.values(byCourse)
+          .reduce((acc, c) => acc + parseFloat(c.creditsAccrued), 0)
+          .toFixed(2);
+
+        return {
+          total: tasks.length,
+          completed,
+          pct,
+          expectedCount,
+          aheadBehind,
+          thisWeekTotal: thisWeekTasks.length,
+          thisWeekDone,
+          byCourse,
+          totalCredits
+        };
+      }, [tasks, calendarWeek, activeAcademicWeek]);
+
+      const filteredTasks = useMemo(() => {
+        return tasks.filter(t => {
+          if (selectedCourse !== "all" && t.courseId !== selectedCourse) return false;
+          if (searchQuery.trim() !== "") {
+            const q = searchQuery.toLowerCase();
+            if (!t.title.toLowerCase().includes(q) && !t.unit.toLowerCase().includes(q)) return false;
+          }
+          if (viewMode === "current_week") return t.week === activeAcademicWeek;
+          if (viewMode === "catch_up") return t.week <= calendarWeek && !t.completed;
+          if (viewMode === "by_week") return t.week === selectedWeek;
+          return true;
+        });
+      }, [tasks, selectedCourse, searchQuery, viewMode, selectedWeek, activeAcademicWeek, calendarWeek]);
+
+      const saveSettings = (e) => {
+        e.preventDefault();
+        localStorage.setItem("nora_script_url", scriptUrl.trim());
+        setShowSettings(false);
+        if (scriptUrl.trim()) fetchTasks(scriptUrl.trim());
+      };
+
+      const isOverdrive = metrics.aheadBehind >= 0 && metrics.completed > 0;
+
+      return (
+        <div className="max-w-5xl mx-auto px-4 py-6 pb-20">
+          {toast && (
+            <div className="fixed bottom-5 right-5 z-50 bg-slate-900 border border-amber-500/60 text-amber-300 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+              <span className="text-xl">{isSciFi ? "🚀" : "✓"}</span>
+              <span className="text-sm font-semibold">{toast}</span>
             </div>
-            <div class="task-title">${t.title}</div>
+          )}
+
+          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span className="inline-block w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
+                <span className="text-xs uppercase tracking-widest text-amber-400 font-semibold">
+                  {isSciFi ? "Hail Mary Ship Log // Tau Ceti Trajectory" : "Grade 9 Academic Competency Record"}
+                </span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mt-1">
+                {isSciFi ? "Astrophage Mission Control: Commander Nora" : "Nora Peak // Fall 2026 Curriculum Tracker"}
+              </h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                {isSciFi
+                  ? `Active Mission Week ${activeAcademicWeek} of ${TOTAL_WEEKS} • Sync: ${syncStatus}`
+                  : `Active Week ${activeAcademicWeek} of ${TOTAL_WEEKS} (Calendar Wk ${calendarWeek}) • Sync: ${syncStatus}`}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                onClick={() => setPersona(isSciFi ? "parent" : "hailmary")}
+                className="px-3.5 py-2 rounded-lg text-xs font-semibold border transition bg-slate-900 border-slate-700 hover:border-amber-500/50 text-slate-200"
+              >
+                {isSciFi ? "Switch to Parent View" : "Switch to Hail Mary View"}
+              </button>
+              <button
+                onClick={() => fetchTasks(scriptUrl)}
+                className="p-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 text-xs"
+                title="Sync"
+              >
+                ↻
+              </button>
+              <button
+                onClick={() => setShowSettings(!showSettings)}
+                className="p-2 rounded-lg bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 text-xs"
+                title="Settings"
+              >
+                ⚙️
+              </button>
+            </div>
+          </header>
+
+          {showSettings && (
+            <form onSubmit={saveSettings} className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-slate-700 space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-white">Google Apps Script URL</h2>
+                <button type="button" onClick={() => setShowSettings(false)} className="text-xs text-slate-400 hover:text-white">Close</button>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={scriptUrl}
+                  onChange={(e) => setScriptUrl(e.target.value)}
+                  className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
+                />
+                <button type="submit" className="px-4 py-2 bg-amber-500 text-slate-950 font-semibold rounded-lg text-xs">
+                  Save & Sync
+                </button>
+              </div>
+            </form>
+          )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
+            <div className={`p-4 rounded-xl bg-slate-900/80 border ${isOverdrive ? "border-purple-500/60 overdrive-glow" : "border-slate-800"}`}>
+              <div className="text-xs text-slate-400">{isSciFi ? "Astrophage Reserves" : "Total Tasks Completed"}</div>
+              <div className="text-2xl font-bold text-white mt-1">
+                {metrics.completed} <span className="text-sm font-normal text-slate-400">/ {metrics.total}</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden">
+                <div
+                  className={`h-full rounded-full bg-gradient-to-r ${isOverdrive ? "from-purple-500 to-amber-400" : "from-amber-500 to-emerald-400"}`}
+                  style={{ width: `${metrics.pct}%` }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="text-xs text-slate-400">{isSciFi ? `Week ${activeAcademicWeek} Burn Target` : `Week ${activeAcademicWeek} Progress`}</div>
+              <div className="text-2xl font-bold text-white mt-1">
+                {metrics.thisWeekDone} <span className="text-sm font-normal text-slate-400">/ {metrics.thisWeekTotal}</span>
+              </div>
+              <div className="text-xs text-slate-400 mt-1.5">
+                {metrics.thisWeekTotal - metrics.thisWeekDone === 0 && metrics.thisWeekTotal > 0
+                  ? (isSciFi ? "Week Burn Complete!" : "All Week Tasks Done")
+                  : `${metrics.thisWeekTotal - metrics.thisWeekDone} remaining in Wk ${activeAcademicWeek}`}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="text-xs text-slate-400">{isSciFi ? "Trajectory Status" : "Pacing vs. Schedule"}</div>
+              <div className={`text-lg font-bold mt-1 ${metrics.aheadBehind >= 0 ? "text-emerald-400" : "text-amber-400"}`}>
+                {metrics.aheadBehind >= 0
+                  ? (isSciFi ? "Amaze! On Track" : `+${metrics.aheadBehind} Ahead of Pace`)
+                  : (isSciFi ? "More Burn Needed" : `${Math.abs(metrics.aheadBehind)} Tasks Behind`)}
+              </div>
+              <div className="text-xs text-slate-400 mt-1">
+                Target through Wk {calendarWeek}: {metrics.expectedCount}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div className="text-xs text-slate-400">{isSciFi ? "Eridian Mission Rating" : "Credits Accrued (Fall)"}</div>
+              <div className="text-2xl font-bold text-white mt-1">
+                {isSciFi ? `${metrics.pct}%` : `${metrics.totalCredits}`}
+                <span className="text-xs font-normal text-slate-400 ml-1">{isSciFi ? "Velocity" : "/ 2.50 Cr"}</span>
+              </div>
+              <div className="text-xs text-slate-400 mt-1.5">
+                {isSciFi ? "Rocky says: Fist my bump!" : "0.50 credit per course"}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 mt-4">
+            {Object.values(COURSE_META).map(course => {
+              const stat = metrics.byCourse[course.id] || { total: 0, completed: 0, pct: 0, delta: 0 };
+              const isSelected = selectedCourse === course.id;
+              return (
+                <button
+                  key={course.id}
+                  onClick={() => setSelectedCourse(isSelected ? "all" : course.id)}
+                  className={`text-left p-3.5 rounded-xl border transition ${
+                    isSelected ? "bg-slate-800/90 border-amber-400" : "bg-slate-900/60 border-slate-800 hover:border-slate-700"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white truncate">{isSciFi ? course.sciFiName : course.name}</span>
+                    <span className="text-xs font-semibold text-amber-400">{stat.pct}%</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 truncate mt-0.5">{isSciFi ? course.name : course.curriculum}</div>
+                  <div className="w-full h-1.5 bg-slate-800 rounded-full mt-2 overflow-hidden">
+                    <div className={`h-full rounded-full bg-gradient-to-r ${course.color}`} style={{ width: `${stat.pct}%` }}></div>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-2">
+                    <span>{stat.completed}/{stat.total} done</span>
+                    <span className={stat.delta >= 0 ? "text-emerald-400" : "text-amber-400"}>
+                      {stat.delta >= 0 ? `+${stat.delta} pace` : `${stat.delta} pace`}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/70 p-3 rounded-xl border border-slate-800">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                onClick={() => setViewMode("current_week")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === "current_week" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                Active Week (Wk {activeAcademicWeek})
+              </button>
+              <button
+                onClick={() => setViewMode("catch_up")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === "catch_up" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                Catch-Up Queue (Wks 1-{calendarWeek})
+              </button>
+              <button
+                onClick={() => setViewMode("by_week")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === "by_week" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                Browse by Week
+              </button>
+              <button
+                onClick={() => setViewMode("by_course")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  viewMode === "by_course" ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"
+                }`}
+              >
+                All Tasks
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {selectedCourse !== "all" && (
+                <button onClick={() => setSelectedCourse("all")} className="text-xs text-amber-400 hover:underline px-2">
+                  All Courses ✕
+                </button>
+              )}
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search lessons..."
+                className="bg-slate-950 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white w-full sm:w-48"
+              />
+            </div>
+          </div>
+
+          {viewMode === "by_week" && (
+            <div className="mt-3 flex items-center gap-1.5 overflow-x-auto pb-2">
+              {Array.from({ length: TOTAL_WEEKS }, (_, i) => i + 1).map(wk => (
+                <button
+                  key={wk}
+                  onClick={() => setSelectedWeek(wk)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold shrink-0 border transition ${
+                    selectedWeek === wk
+                      ? "bg-amber-500 text-slate-950 border-amber-400"
+                      : wk === activeAcademicWeek
+                      ? "bg-slate-800 text-amber-300 border-amber-500/40"
+                      : "bg-slate-900 text-slate-400 border-slate-800"
+                  }`}
+                >
+                  Wk {wk}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-4 space-y-2">
+            {loading && tasks.length === 0 ? (
+              <div className="p-12 text-center text-slate-400 text-sm bg-slate-900/40 rounded-xl border border-slate-800">
+                Loading curriculum tasks...
+              </div>
+            ) : filteredTasks.length === 0 ? (
+              <div className="p-10 text-center text-slate-400 text-sm bg-slate-900/40 rounded-xl border border-slate-800">
+                {tasks.length === 0
+                  ? "No tasks found. Ensure Code.gs is deployed as a New Version on the Master Task Tracker sheet."
+                  : "Zero pending tasks in this filter!"}
+              </div>
+            ) : (
+              filteredTasks.map(task => {
+                const course = COURSE_META[task.courseId] || {
+                  name: task.courseName,
+                  sciFiName: task.courseName,
+                  badge: "bg-slate-700 text-slate-200"
+                };
+                return (
+                  <div
+                    key={task.id}
+                    onClick={() => toggleTask(task)}
+                    className={`flex items-start gap-3.5 p-3.5 rounded-xl border cursor-pointer select-none transition ${
+                      task.completed
+                        ? "bg-slate-900/30 border-slate-800/80 opacity-65"
+                        : "bg-slate-900/90 border-slate-800 hover:border-amber-500/50"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => {}}
+                      className="mt-1 w-5 h-5 rounded border-slate-600 cursor-pointer accent-amber-500"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${course.badge}`}>
+                          {isSciFi ? course.sciFiName : course.name}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-medium">
+                          Week {task.week} ({task.weekDates})
+                        </span>
+                        <span className="text-[11px] text-slate-500 truncate">
+                          • {task.unit}
+                        </span>
+                      </div>
+                      <div className={`text-sm font-medium mt-1 ${task.completed ? "line-through text-slate-500" : "text-slate-100"}`}>
+                        {task.title}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
-      `;
-    }).join("");
-  }
-
-  function handleSearch() {
-    renderTaskList();
-  }
-
-  async function toggleTask(taskId, isCompleted) {
-    const task = allTasks.find(t => String(t.id) === String(taskId));
-    if (task) {
-      task.completed = isCompleted;
-      task.date_completed = isCompleted ? new Date().toISOString() : "";
+      );
     }
 
-    const card = document.getElementById(`card_${taskId}`);
-    if (card) {
-      if (isCompleted) card.classList.add("completed");
-      else card.classList.remove("completed");
-    }
-
-    renderTopMetrics();
-    renderCourseCards();
-
-    try {
-      await fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task_id: taskId, completed: isCompleted })
-      });
-    } catch (e) {
-      console.warn("Background sync failed:", e);
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", init);
-</script>
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
 </body>
 </html>
